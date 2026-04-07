@@ -10,11 +10,15 @@
 import React, { useRef, useEffect, useState } from 'react';
 import s from './PlayCanvasPlayer.module.scss';
 
-const PLAYCANVAS_CONFIG = {
+const PLAYCANVAS_DEFAULTS = {
   baseUrl: 'https://2d-render-admin-storage.fra1.cdn.digitaloceanspaces.com',
   idProject: '428',
   idProduct: '2669',
 } as const;
+
+export interface PlayCanvasPlayerProps {
+  productId?: string;
+}
 
 const generateUrls = (baseUrl: string, idProject: string, idProduct: string) => {
   const base = `${baseUrl}/projects/${idProject}/products/${idProduct}/playcanvas/`;
@@ -101,7 +105,8 @@ const waitForConfiguratorAPI = async (timeoutMs = 30000): Promise<boolean> => {
   return false;
 };
 
-export const PlayCanvasPlayer: React.FC = () => {
+export const PlayCanvasPlayer: React.FC<PlayCanvasPlayerProps> = ({ productId }) => {
+  const resolvedProductId = productId || PLAYCANVAS_DEFAULTS.idProduct;
   const containerRef = useRef<HTMLDivElement>(null);
   const [status, setStatus] = useState<'loading' | 'fading' | 'ready' | 'error'>('loading');
 
@@ -109,9 +114,9 @@ export const PlayCanvasPlayer: React.FC = () => {
     let isMounted = true;
     const cacheBust = String(Date.now());
     const urls = generateUrls(
-      PLAYCANVAS_CONFIG.baseUrl,
-      PLAYCANVAS_CONFIG.idProject,
-      PLAYCANVAS_CONFIG.idProduct
+      PLAYCANVAS_DEFAULTS.baseUrl,
+      PLAYCANVAS_DEFAULTS.idProject,
+      resolvedProductId
     );
 
     const init = async () => {
@@ -159,7 +164,7 @@ export const PlayCanvasPlayer: React.FC = () => {
       isMounted = false;
       cleanupPlayCanvas(urls);
     };
-  }, []);
+  }, [resolvedProductId]);
 
   const showOverlay = status === 'loading' || status === 'fading';
 
@@ -175,6 +180,14 @@ export const PlayCanvasPlayer: React.FC = () => {
               <div className={s.loaderDot} />
             </div>
             <div className={s.splashText}>Personalising your experience...</div>
+          </div>
+        </div>
+      )}
+
+      {status === 'error' && (
+        <div className={s.overlay}>
+          <div className={s.splash}>
+            <div className={s.splashText}>Product not found or failed to load.</div>
           </div>
         </div>
       )}
