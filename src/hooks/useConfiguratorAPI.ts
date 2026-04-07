@@ -17,7 +17,17 @@ export interface ConfiguratorAPI {
   getAvailableOptions(): Record<string, unknown>;
   resetConfig(): Promise<void>;
   camera: any;
-  outline: any;
+  outline: {
+    getGroups(): Array<{ itemNumber: number; groupName: string; partNumber: string }>;
+    getSelectedGroup(): any | null;
+    getGroupData(name: string): any | null;
+    selectGroup(groupName: string): void;
+    deselect(): void;
+    highlightGroup(groupName: string): void;
+    clearHighlight(): void;
+    onSelect(cb: (data: any) => void): () => void;
+    onDeselect(cb: () => void): () => void;
+  };
   annotations: { show(): void; hide(): void; isVisible(): boolean };
 }
 
