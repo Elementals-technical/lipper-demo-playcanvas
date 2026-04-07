@@ -1,25 +1,9 @@
 import type { LippertVariantMetadata } from './types';
 
-// ── Hub Assembly (color variants) ──
+// ── Hub Assembly (toggle) ──
 const HUB_ASSEMBLY: Record<string, LippertVariantMetadata> = {
-  Black: {
-    assetId: 'hub-black',
-    pcOption: 'Black',
-    pcAsset: null,
-    extra: { _bg: '#1a1a1a' },
-  },
-  Turquoise: {
-    assetId: 'hub-turquoise',
-    pcOption: 'Turquoise',
-    pcAsset: null,
-    extra: { _bg: '#30D5C8' },
-  },
-  White: {
-    assetId: 'hub-white',
-    pcOption: 'White',
-    pcAsset: null,
-    extra: { _bg: '#FFFFFF' },
-  },
+  true: { assetId: 'hub-on', pcOption: true, pcAsset: null },
+  false: { assetId: 'hub-off', pcOption: false, pcAsset: null },
 };
 
 // ── Brake Assembly (toggle) ──

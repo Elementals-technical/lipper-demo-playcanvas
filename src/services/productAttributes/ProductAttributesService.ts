@@ -29,13 +29,12 @@ export class ProductAttributesService {
     const productData = await this.fetchProductData(id);
     if (!productData) return {};
 
-    const optionGroups = (productData.availableOptions || []).map((g) => ({
-      group: g,
-      type: 'option' as const,
-    }));
-    const geometryGroups = (productData.availableGeometryOptions || []).map(
-      (g) => ({ group: g, type: 'geometry' as const }),
-    );
+    const optionGroups = (productData.availableOptions || [])
+      .filter((g) => g.enabled)
+      .map((g) => ({ group: g, type: 'option' as const }));
+    const geometryGroups = (productData.availableGeometryOptions || [])
+      .filter((g) => g.enabled)
+      .map((g) => ({ group: g, type: 'geometry' as const }));
 
     const result = [...optionGroups, ...geometryGroups].reduce<
       Record<string, ProductDataAttributes>
@@ -68,7 +67,7 @@ export class ProductAttributesService {
     const result: Record<string, ProductDataAttributes> = {};
 
     data.options.forEach((item) => {
-      result[item.name] = {
+      result[data.proxyName] = {
         id: item.id,
         name: data.proxyName,
         type,

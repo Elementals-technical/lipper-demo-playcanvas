@@ -22,6 +22,7 @@ export const PC_KEY_TO_ATTR: Record<string, string> = Object.fromEntries(
 
 // Boolean attributes (toggle on/off)
 const BOOLEAN_ATTRS = new Set([
+  'Hub Assembly',
   'Brake Assembly',
   'Spring Assembly',
   'Spindle Assembly',

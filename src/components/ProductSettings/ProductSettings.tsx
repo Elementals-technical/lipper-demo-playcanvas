@@ -1,7 +1,7 @@
 import s from "./ProductSettings.module.scss";
 import { LogoIcon } from "../../assets/img/svg/LogoIconIcon";
-import { useConfiguratorAPI, ConfiguratorState } from "../../hooks/useConfiguratorAPI";
-import { useAttribute, getMockAttributes, isBooleanAttr } from "../../configurator";
+import { useConfiguratorAPI } from "../../hooks/useConfiguratorAPI";
+import { useAttribute, getMockAttributes } from "../../configurator";
 import { useAppSelector, useAppDispatch } from "../../store/store";
 import { getApiReady } from "../../store/slices/configurator/selectors/selectors";
 import { setActiveItem } from "../../store/slices/configurator/Configurator.sclice";
@@ -15,8 +15,17 @@ const CAMERA_OPTIONS = [
   { value: "back", label: "Back" },
 ];
 
-// ── Toggle attribute (Brake, Spring, Spindle, Explode, Annotations) ──
-const ToggleAttribute = ({ name }: { name: string }) => {
+const ASSEMBLY_NAMES = [
+  "Hub Assembly",
+  "Spindle Assembly",
+  "Spring Assembly",
+  "Brake Assembly",
+];
+
+const ACTION_NAMES = ["Explode", "Annotations"];
+
+// ── Toggle for assembly visibility ──
+const AssemblyToggle = ({ name }: { name: string }) => {
   const [attribute, setAttribute] = useAttribute(name);
   const dispatch = useAppDispatch();
 
@@ -28,13 +37,7 @@ const ToggleAttribute = ({ name }: { name: string }) => {
     const newValue = !isOn;
     setAttribute(newValue);
     dispatch(
-      setActiveItem({
-        name,
-        data: {
-          activeItem: String(newValue),
-          img: "",
-        },
-      }),
+      setActiveItem({ name, data: { activeItem: String(newValue), img: "" } }),
     );
   };
 
@@ -49,49 +52,37 @@ const ToggleAttribute = ({ name }: { name: string }) => {
   );
 };
 
-// ── Color attribute (Hub Assembly) ──
-const ColorAttribute = ({ name }: { name: string }) => {
+// ── Action button (Explode / Annotations) ──
+const ActionButton = ({
+  name,
+  icon,
+}: {
+  name: string;
+  icon: React.ReactNode;
+}) => {
   const [attribute, setAttribute] = useAttribute(name);
   const dispatch = useAppDispatch();
 
   if (!attribute) return null;
 
-  const currentAssetId =
-    typeof attribute.value === "object" && "assetId" in attribute.value
-      ? attribute.value.assetId
-      : "";
+  const isOn = attribute.value === true;
+
+  const toggle = () => {
+    const newValue = !isOn;
+    setAttribute(newValue);
+    dispatch(
+      setActiveItem({ name, data: { activeItem: String(newValue), img: "" } }),
+    );
+  };
 
   return (
-    <div className={s.section}>
-      <div className={s.sectionTitle}>{name}</div>
-      <div className={s.colorGrid}>
-        {attribute.values.map((variant) => {
-          const bg = (variant.metadata._bg as string) ?? "#ccc";
-          const isActive = variant.assetId === currentAssetId;
-
-          return (
-            <button
-              key={variant.assetId}
-              className={`${s.colorSwatch} ${isActive ? s.active : ""}`}
-              style={{ backgroundColor: bg }}
-              title={variant.label}
-              onClick={() => {
-                setAttribute(variant.assetId);
-                dispatch(
-                  setActiveItem({
-                    name,
-                    data: {
-                      activeItem: variant.label,
-                      img: variant.metadata._img ?? "",
-                    },
-                  }),
-                );
-              }}
-            />
-          );
-        })}
-      </div>
-    </div>
+    <button
+      className={`${s.actionBtn} ${isOn ? s.active : ""}`}
+      onClick={toggle}
+    >
+      {icon}
+      {name === "Explode" ? (isOn ? "Collapse" : "Explode") : name}
+    </button>
   );
 };
 
@@ -104,9 +95,9 @@ export const ProductSettings: React.FC = () => {
     setConfig({ cameraPosition: value });
   };
 
-  // Split attributes into toggles and non-toggles
-  const toggleNames = Object.keys(mocks).filter(isBooleanAttr);
-  const colorNames = Object.keys(mocks).filter((n) => !isBooleanAttr(n));
+  // Only show assemblies/actions that exist in Vivid API
+  const visibleAssemblies = ASSEMBLY_NAMES.filter((n) => mocks[n]);
+  const visibleActions = ACTION_NAMES.filter((n) => mocks[n]);
 
   return (
     <div className={s.panel}>
@@ -120,20 +111,45 @@ export const ProductSettings: React.FC = () => {
           <div className={s.waiting}>Waiting for 3D model...</div>
         ) : (
           <>
-            {/* Color options (Hub Assembly) */}
-            {colorNames.map((name) => (
-              <ColorAttribute key={name} name={name} />
-            ))}
-
-            {/* Toggle assemblies */}
-            <div className={s.section}>
-              <div className={s.sectionTitle}>Assemblies & Controls</div>
-              <div className={s.toggleList}>
-                {toggleNames.map((name) => (
-                  <ToggleAttribute key={name} name={name} />
-                ))}
+            {/* Explode + Annotations row */}
+            {visibleActions.length > 0 && (
+              <div className={s.actionRow}>
+                {visibleActions.includes("Explode") && (
+                  <ActionButton
+                    name="Explode"
+                    icon={
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                        <path d="M2 17l10 5 10-5" />
+                        <path d="M2 12l10 5 10-5" />
+                      </svg>
+                    }
+                  />
+                )}
+                {visibleActions.includes("Annotations") && (
+                  <ActionButton
+                    name="Annotations"
+                    icon={
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                      </svg>
+                    }
+                  />
+                )}
               </div>
-            </div>
+            )}
+
+            {/* Assembly Visibility */}
+            {visibleAssemblies.length > 0 && (
+              <div className={s.section}>
+                <div className={s.sectionTitle}>Assemblies</div>
+                <div className={s.toggleList}>
+                  {visibleAssemblies.map((name) => (
+                    <AssemblyToggle key={name} name={name} />
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Camera */}
             <div className={s.section}>
@@ -157,7 +173,8 @@ export const ProductSettings: React.FC = () => {
       <div className={s.footer}>
         <button className={s.resetBtn} onClick={resetConfig} disabled={!isReady}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M3 12a9 9 0 1 1 3 6.9" /><path d="M3 21v-6h6" />
+            <path d="M3 12a9 9 0 1 1 3 6.9" />
+            <path d="M3 21v-6h6" />
           </svg>
           Reset Configuration
         </button>
