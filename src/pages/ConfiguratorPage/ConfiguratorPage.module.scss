@@ -16,37 +16,7 @@
     .playerWrap {
       position: relative;
       flex: 1 1 0;
-      height: calc(100% - 120px);
-    }
-    .webglWrap {
-      width: 100%;
       height: 100%;
-      position: relative;
-      flex: 1 1 0;
-    }
-    .imageWrap {
-      position: absolute;
-      z-index: 11;
-      width: 100%;
-      height: 100%;
-      top: 0;
-      left: 0;
-
-      display: flex;
-      flex-direction: column;
-      gap: 0;
-      .iframeWrap {
-        position: relative;
-        flex: 1 1 0;
-      }
-    }
-    .sliderWrap {
-      height: 120px;
-      padding-top: 8px;
-    }
-    .hided {
-      visibility: hidden;
-      opacity: 0;
     }
   }
   .productSettingsContent {

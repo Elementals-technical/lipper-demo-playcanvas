@@ -1,25 +1,33 @@
-import { useAttribute } from "@threekit-tools/treble/dist";
+import { useState } from "react";
 import s from "./AttrColor.module.scss";
-import { ATTRIBUTE_TYPES } from "@threekit-tools/treble/dist/types";
+
+const COLORS = [
+  { label: "White", value: "white" },
+  { label: "Black", value: "black" },
+  { label: "Gray", value: "gray" },
+  { label: "Brown", value: "brown" },
+  { label: "Tan", value: "tan" },
+];
 
 export const AttrColor = () => {
-  const [attribute, setAttribute] = useAttribute("Set Color");
-  console.log("attribute --- ==== ", attribute);
-  if (attribute === undefined) return null;
+  const [selected, setSelected] = useState(COLORS[0].value);
+
   return (
     <div className={s.attrColors}>
       <div className={s.label}>Product Color</div>
       <div className={s.values}>
-        {attribute &&
-          attribute.type === ATTRIBUTE_TYPES.STRING &&
-          attribute.values.map((value) => {
-            const isActive = attribute.value === value.value;
-            return (
-              <div className={`${s.value} ${isActive ? s.active : ""}`} onClick={() => value.handleSelect()}>
-                <div className={s.color} style={{ background: value.value.toLowerCase() }}></div>
-              </div>
-            );
-          })}
+        {COLORS.map((color) => {
+          const isActive = selected === color.value;
+          return (
+            <div
+              key={color.value}
+              className={`${s.value} ${isActive ? s.active : ""}`}
+              onClick={() => setSelected(color.value)}
+            >
+              <div className={s.color} style={{ background: color.value }}></div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
