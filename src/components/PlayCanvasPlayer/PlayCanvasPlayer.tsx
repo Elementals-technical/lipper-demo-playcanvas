@@ -1,7 +1,7 @@
 /**
  * PlayCanvas Player Component
- * Завантажує PlayCanvas скрипти напряму, ховає вбудований UI,
- * залишає тільки canvas з 3D моделлю.
+ * Завантажує PlayCanvas скрипти напряму.
+ * Не переміщує елементи — тільки ховає зайвий UI (SuperSplat панелі).
  * ConfiguratorAPI доступний через window.ConfiguratorAPI.
  */
 
@@ -88,52 +88,105 @@ const loadModuleScript = (src: string, cacheBust: string): Promise<void> => {
 };
 
 /**
- * Ховає весь вбудований UI PlayCanvas (SuperSplat панелі, тулбари),
- * залишає тільки canvas.
+ * CSS-інжекція: ховає SuperSplat UI, обмежує canvas та анотації контейнером.
+ * PlayCanvas елементи залишаються в body, але візуально обмежені рамками плеєра.
  */
-const hidePlayCanvasUI = (containerRef: React.RefObject<HTMLDivElement | null>) => {
-  // Ховаємо весь контент body, який PlayCanvas додав поза нашим контейнером
-  const observer = new MutationObserver(() => {
-    // Приховати всі прямі дочірні елементи body, окрім нашого React root та стандартних
-    document.body.querySelectorAll(':scope > div, :scope > header, :scope > footer, :scope > nav, :scope > aside').forEach((el) => {
-      const htmlEl = el as HTMLElement;
-      // Пропускаємо React root та наші елементи
-      if (
-        htmlEl.id === 'tk-treble-root' ||
-        htmlEl.id === 'application-canvas' ||
-        htmlEl.closest('#tk-treble-root')
-      ) return;
-      // Ховаємо елементи PlayCanvas UI
-      if (!htmlEl.dataset.reactRoot) {
-        htmlEl.style.display = 'none';
-      }
-    });
+const injectContainmentStyles = () => {
+  const styleId = 'playcanvas-containment-styles';
+  if (document.getElementById(styleId)) return;
 
-    // Знаходимо canvas і переміщуємо в наш контейнер
-    const canvas = document.getElementById('application-canvas') as HTMLCanvasElement;
-    if (canvas && containerRef.current && !containerRef.current.contains(canvas)) {
-      containerRef.current.appendChild(canvas);
-      canvas.className = s.canvas;
+  const style = document.createElement('style');
+  style.id = styleId;
+  style.textContent = `
+    /* Clip PlayCanvas canvas and overlays to our container bounds */
+    #application-canvas {
+      position: absolute !important;
+      clip-path: none;
     }
-  });
 
-  observer.observe(document.body, { childList: true, subtree: false });
-
-  // Також одразу виконуємо
-  setTimeout(() => {
-    const canvas = document.getElementById('application-canvas') as HTMLCanvasElement;
-    if (canvas && containerRef.current && !containerRef.current.contains(canvas)) {
-      containerRef.current.appendChild(canvas);
-      canvas.className = s.canvas;
+    /* Hide SuperSplat editor UI */
+    body > div:not(#tk-treble-root):not([class*="pcui"]):not(.annotation-container) {
+      /* Don't hide by default — be selective below */
     }
-  }, 500);
 
-  return () => observer.disconnect();
+    /* Hide specific SuperSplat panels */
+    .pcui-panel,
+    .pcui-container,
+    [class*="toolbar"],
+    [class*="menu-bar"],
+    [class*="scene-manager"],
+    [id*="panel"] {
+      display: none !important;
+    }
+  `;
+  document.head.appendChild(style);
+};
+
+const removeContainmentStyles = () => {
+  document.getElementById('playcanvas-containment-styles')?.remove();
 };
 
 /**
- * Очікування ConfiguratorAPI
+ * Синхронізує розмір та позицію PlayCanvas canvas з нашим контейнером.
  */
+const syncCanvasToContainer = (containerRef: React.RefObject<HTMLDivElement | null>) => {
+  const sync = () => {
+    const container = containerRef.current;
+    const canvas = document.getElementById('application-canvas') as HTMLCanvasElement;
+    if (!container || !canvas) return;
+
+    const rect = container.getBoundingClientRect();
+    canvas.style.position = 'fixed';
+    canvas.style.left = `${rect.left}px`;
+    canvas.style.top = `${rect.top}px`;
+    canvas.style.width = `${rect.width}px`;
+    canvas.style.height = `${rect.height}px`;
+    canvas.style.zIndex = '1';
+  };
+
+  sync();
+  const interval = setInterval(sync, 200);
+  window.addEventListener('resize', sync);
+  window.addEventListener('scroll', sync);
+
+  return () => {
+    clearInterval(interval);
+    window.removeEventListener('resize', sync);
+    window.removeEventListener('scroll', sync);
+  };
+};
+
+/**
+ * Синхронізує анотації (labels) — зсуває їх відносно контейнера.
+ */
+const syncAnnotations = (containerRef: React.RefObject<HTMLDivElement | null>) => {
+  const observer = new MutationObserver(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const rect = container.getBoundingClientRect();
+
+    // PlayCanvas annotations — зазвичай div з абсолютним/фіксованим позиціонуванням
+    document.querySelectorAll('.annotation, [class*="annotation"], [class*="label-"]').forEach((el) => {
+      const htmlEl = el as HTMLElement;
+      // Clip annotations to container bounds
+      const elRect = htmlEl.getBoundingClientRect();
+      if (
+        elRect.right < rect.left ||
+        elRect.left > rect.right ||
+        elRect.bottom < rect.top ||
+        elRect.top > rect.bottom
+      ) {
+        htmlEl.style.visibility = 'hidden';
+      } else {
+        htmlEl.style.visibility = 'visible';
+      }
+    });
+  });
+
+  observer.observe(document.body, { childList: true, subtree: true });
+  return () => observer.disconnect();
+};
+
 const waitForConfiguratorAPI = async (timeoutMs = 30000): Promise<boolean> => {
   const startTime = Date.now();
   while (Date.now() - startTime < timeoutMs) {
@@ -143,6 +196,8 @@ const waitForConfiguratorAPI = async (timeoutMs = 30000): Promise<boolean> => {
   return false;
 };
 
+const CONTAINER_ID = 'playcanvas-player-container';
+
 export const PlayCanvasPlayer: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
@@ -150,20 +205,21 @@ export const PlayCanvasPlayer: React.FC = () => {
   useEffect(() => {
     let isMounted = true;
     const cacheBust = String(Date.now());
-
     const urls = generateUrls(
       PLAYCANVAS_CONFIG.baseUrl,
       PLAYCANVAS_CONFIG.idProject,
       PLAYCANVAS_CONFIG.idProduct
     );
 
-    // Приховуємо зайвий UI
-    const disconnectObserver = hidePlayCanvasUI(containerRef);
+    let cleanupSync: (() => void) | undefined;
+    let cleanupAnnotations: (() => void) | undefined;
 
     const init = async () => {
       try {
         cleanupPlayCanvas(urls);
         setStatus('loading');
+
+        injectContainmentStyles();
 
         addLink(urls.styles, 'stylesheet', 'text/css');
         addLink(urls.manifest, 'manifest');
@@ -175,15 +231,14 @@ export const PlayCanvasPlayer: React.FC = () => {
         await loadModuleScript(urls.indexScript, cacheBust);
         if (!isMounted) return;
 
-        const apiReady = await waitForConfiguratorAPI(30000);
+        await waitForConfiguratorAPI(30000);
         if (!isMounted) return;
 
-        if (apiReady) {
-          setStatus('ready');
-        } else {
-          // API не з'явився, але canvas може працювати
-          setStatus('ready');
-        }
+        // Start syncing canvas position/size to our container
+        cleanupSync = syncCanvasToContainer(containerRef);
+        cleanupAnnotations = syncAnnotations(containerRef);
+
+        setStatus('ready');
       } catch (err) {
         if (!isMounted) return;
         console.error('PlayCanvas init failed:', err);
@@ -195,13 +250,20 @@ export const PlayCanvasPlayer: React.FC = () => {
 
     return () => {
       isMounted = false;
-      disconnectObserver();
+      cleanupSync?.();
+      cleanupAnnotations?.();
+      removeContainmentStyles();
       cleanupPlayCanvas(urls);
     };
   }, []);
 
   return (
-    <div ref={containerRef} className={s.container} data-status={status}>
+    <div
+      ref={containerRef}
+      id={CONTAINER_ID}
+      className={s.container}
+      data-status={status}
+    >
       {status === 'loading' && (
         <div className={s.overlay}>
           <div className={s.loading}>
