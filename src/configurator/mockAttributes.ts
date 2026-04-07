@@ -42,6 +42,10 @@ let _initialized = false;
 // ── Build a single mock attribute ──
 
 const DEFAULT_OVERRIDES: Record<string, string> = {
+  'Hub Assembly': 'true',
+  'Brake Assembly': 'true',
+  'Spring Assembly': 'true',
+  'Spindle Assembly': 'true',
   Explode: 'false',
   Annotations: 'false',
 };
