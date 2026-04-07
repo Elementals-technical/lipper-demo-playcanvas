@@ -1,6 +1,10 @@
 import s from "./ProductSettings.module.scss";
 import { LogoIcon } from "../../assets/img/svg/LogoIconIcon";
 import { useConfiguratorAPI, ConfiguratorState } from "../../hooks/useConfiguratorAPI";
+import { useAttribute, getMockAttributes, isBooleanAttr } from "../../configurator";
+import { useAppSelector, useAppDispatch } from "../../store/store";
+import { getApiReady } from "../../store/slices/configurator/selectors/selectors";
+import { setActiveItem } from "../../store/slices/configurator/Configurator.sclice";
 
 const CAMERA_OPTIONS = [
   { value: "iso", label: "Isometric" },
@@ -11,24 +15,98 @@ const CAMERA_OPTIONS = [
   { value: "back", label: "Back" },
 ];
 
-const ASSEMBLY_TOGGLES: { key: keyof ConfiguratorState; label: string }[] = [
-  { key: "hubAssemblyVisible", label: "Hub Assembly" },
-  { key: "spindleAssemblyVisible", label: "Spindle Assembly" },
-  { key: "springAssemblyVisible", label: "Spring Assembly" },
-  { key: "brakeAssemblyVisible", label: "Brake Assembly" },
-];
+// ── Toggle attribute (Brake, Spring, Spindle, Explode, Annotations) ──
+const ToggleAttribute = ({ name }: { name: string }) => {
+  const [attribute, setAttribute] = useAttribute(name);
+  const dispatch = useAppDispatch();
+
+  if (!attribute) return null;
+
+  const isOn = attribute.value === true;
+
+  const toggle = () => {
+    const newValue = !isOn;
+    setAttribute(newValue);
+    dispatch(
+      setActiveItem({
+        name,
+        data: {
+          activeItem: String(newValue),
+          img: "",
+        },
+      }),
+    );
+  };
+
+  return (
+    <label className={s.toggle}>
+      <input type="checkbox" checked={isOn} onChange={toggle} />
+      <span className={s.toggleTrack}>
+        <span className={s.toggleThumb} />
+      </span>
+      <span className={s.toggleLabel}>{name}</span>
+    </label>
+  );
+};
+
+// ── Color attribute (Hub Assembly) ──
+const ColorAttribute = ({ name }: { name: string }) => {
+  const [attribute, setAttribute] = useAttribute(name);
+  const dispatch = useAppDispatch();
+
+  if (!attribute) return null;
+
+  const currentAssetId =
+    typeof attribute.value === "object" && "assetId" in attribute.value
+      ? attribute.value.assetId
+      : "";
+
+  return (
+    <div className={s.section}>
+      <div className={s.sectionTitle}>{name}</div>
+      <div className={s.colorGrid}>
+        {attribute.values.map((variant) => {
+          const bg = (variant.metadata._bg as string) ?? "#ccc";
+          const isActive = variant.assetId === currentAssetId;
+
+          return (
+            <button
+              key={variant.assetId}
+              className={`${s.colorSwatch} ${isActive ? s.active : ""}`}
+              style={{ backgroundColor: bg }}
+              title={variant.label}
+              onClick={() => {
+                setAttribute(variant.assetId);
+                dispatch(
+                  setActiveItem({
+                    name,
+                    data: {
+                      activeItem: variant.label,
+                      img: variant.metadata._img ?? "",
+                    },
+                  }),
+                );
+              }}
+            />
+          );
+        })}
+      </div>
+    </div>
+  );
+};
 
 export const ProductSettings: React.FC = () => {
   const { state, setConfig, resetConfig, isReady } = useConfiguratorAPI();
-
-  const handleToggle = (key: keyof ConfiguratorState) => {
-    if (!state) return;
-    setConfig({ [key]: !state[key] });
-  };
+  const apiReady = useAppSelector(getApiReady);
+  const mocks = getMockAttributes();
 
   const handleCamera = (value: string) => {
     setConfig({ cameraPosition: value });
   };
+
+  // Split attributes into toggles and non-toggles
+  const toggleNames = Object.keys(mocks).filter(isBooleanAttr);
+  const colorNames = Object.keys(mocks).filter((n) => !isBooleanAttr(n));
 
   return (
     <div className={s.panel}>
@@ -38,48 +116,21 @@ export const ProductSettings: React.FC = () => {
       </div>
 
       <div className={s.content}>
-        {!isReady ? (
+        {!isReady || !apiReady ? (
           <div className={s.waiting}>Waiting for 3D model...</div>
         ) : (
           <>
-            {/* Explode + Annotations row */}
-            <div className={s.actionRow}>
-              <button
-                className={`${s.actionBtn} ${state?.explodeStatus ? s.active : ""}`}
-                onClick={() => handleToggle("explodeStatus")}
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 2L2 7l10 5 10-5-10-5z" /><path d="M2 17l10 5 10-5" /><path d="M2 12l10 5 10-5" />
-                </svg>
-                {state?.explodeStatus ? "Collapse" : "Explode"}
-              </button>
-              <button
-                className={`${s.actionBtn} ${state?.annotationsVisible ? s.active : ""}`}
-                onClick={() => handleToggle("annotationsVisible")}
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                </svg>
-                Annotations
-              </button>
-            </div>
+            {/* Color options (Hub Assembly) */}
+            {colorNames.map((name) => (
+              <ColorAttribute key={name} name={name} />
+            ))}
 
-            {/* Assembly Visibility */}
+            {/* Toggle assemblies */}
             <div className={s.section}>
-              <div className={s.sectionTitle}>Assemblies</div>
+              <div className={s.sectionTitle}>Assemblies & Controls</div>
               <div className={s.toggleList}>
-                {ASSEMBLY_TOGGLES.map(({ key, label }) => (
-                  <label key={key} className={s.toggle}>
-                    <input
-                      type="checkbox"
-                      checked={!!state?.[key]}
-                      onChange={() => handleToggle(key)}
-                    />
-                    <span className={s.toggleTrack}>
-                      <span className={s.toggleThumb} />
-                    </span>
-                    <span className={s.toggleLabel}>{label}</span>
-                  </label>
+                {toggleNames.map((name) => (
+                  <ToggleAttribute key={name} name={name} />
                 ))}
               </div>
             </div>
@@ -99,7 +150,6 @@ export const ProductSettings: React.FC = () => {
                 ))}
               </div>
             </div>
-
           </>
         )}
       </div>
