@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import Button from "../Button/Button";
 import { SearchInput } from "../SearchInput/SearchInput";
+import { NotificationPanel } from "../NotificationPanel/NotificationPanel";
 import s from "./Header.module.scss";
 import { LogoIcon } from "../../assets/img/svg/LogoIconIcon";
 type HeaderT = {
@@ -47,6 +48,7 @@ export const Header: React.FC<HeaderT> = ({ className }) => {
           <Button variant="secondary" className={s.btnBlack}>
             Cart Empty
           </Button>
+          <NotificationPanel />
         </div>
       </div>
       <div className={s.bottom}>
