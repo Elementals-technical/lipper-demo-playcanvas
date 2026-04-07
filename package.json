@@ -17,7 +17,7 @@
     "swiper": "^11.2.10"
   },
   "scripts": {
-    "start": "treble-scripts start",
+    "start": "treble-scripts start --port 5173",
     "build": "treble-scripts build",
     "format": "prettier --write ./src",
     "lint": "eslint ./src",
