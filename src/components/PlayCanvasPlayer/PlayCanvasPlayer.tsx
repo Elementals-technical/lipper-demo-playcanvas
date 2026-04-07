@@ -75,6 +75,7 @@ const addLink = (href: string, rel: string, type?: string): void => {
 };
 
 const addImportMap = (baseUrl: string, cacheBust: string) => {
+  if (document.querySelector('script[type="importmap"]')) return;
   const script = document.createElement('script');
   script.type = 'importmap';
   script.textContent = JSON.stringify({
@@ -86,10 +87,14 @@ const addImportMap = (baseUrl: string, cacheBust: string) => {
 };
 
 const loadModuleScript = (src: string, cacheBust: string): Promise<void> => {
+  const fullSrc = `${src}?v=${cacheBust}`;
+  const existing = document.querySelector(`script[src="${fullSrc}"]`);
+  if (existing) return Promise.resolve();
+
   return new Promise((resolve, reject) => {
     const script = document.createElement('script');
     script.type = 'module';
-    script.src = `${src}?v=${cacheBust}`;
+    script.src = fullSrc;
     script.onload = () => resolve();
     script.onerror = () => reject(new Error(`Failed to load: ${src}`));
     document.body.appendChild(script);
@@ -112,7 +117,7 @@ export const PlayCanvasPlayer: React.FC<PlayCanvasPlayerProps> = ({ productId })
 
   useEffect(() => {
     let isMounted = true;
-    const cacheBust = String(Date.now());
+    const cacheBust = resolvedProductId;
     const urls = generateUrls(
       PLAYCANVAS_DEFAULTS.baseUrl,
       PLAYCANVAS_DEFAULTS.idProject,
@@ -121,6 +126,12 @@ export const PlayCanvasPlayer: React.FC<PlayCanvasPlayerProps> = ({ productId })
 
     const init = async () => {
       try {
+        // Skip re-init if ConfiguratorAPI already loaded for this product
+        if ((window as any).ConfiguratorAPI) {
+          setStatus('ready');
+          return;
+        }
+
         cleanupPlayCanvas(urls);
         setStatus('loading');
 
