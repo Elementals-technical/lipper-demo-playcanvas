@@ -1,0 +1,25 @@
+.wrap {
+  color: var(--content-lightdark-accent, #6c757d);
+  font-feature-settings: "liga" off, "clig" off;
+
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 16px; /* 133.333% */
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  border-radius: 100px;
+  border: 1px solid var(--border, #e3e5fa);
+  background: var(--main-bg-color, #f6f7fd);
+}
+
+.input {
+  flex: 1;
+  font-size: 1rem;
+  border: none;
+  outline: none;
+  background: transparent;
+  width: 100%;
+}

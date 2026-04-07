@@ -1,0 +1,22 @@
+@import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Open+Sans:wdth,wght@75..100,300..800&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
+
+html,
+body {
+  margin: 0;
+  font-family: "Roboto", sans-serif;
+}
+
+[data-id="BTN_player_full_screen"],
+[data-id="BTN_player_help"],
+[data-id="arButton"],
+[data-id="BTN_player_share_button"] {
+  user-select: none;
+  visibility: hidden;
+}
+
+.threekit-react.tk-player {
+  min-height: auto;
+  > div:nth-child(1) {
+    min-height: auto;
+  }
+}

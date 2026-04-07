@@ -1,0 +1,90 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  background: #fff;
+  box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.08);
+}
+
+.head {
+  display: flex;
+  padding: 12px 40px;
+  justify-content: space-between;
+  align-items: center;
+  align-self: stretch;
+  background: #b52c10;
+}
+
+.btnsGroup {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.btn {
+  color: #fff;
+  background: transparent;
+  font-family: Roboto;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 20px; /* 142.857% */
+  &Black {
+    background: transparent;
+    color: #111;
+  }
+  &Rounded {
+    border-radius: 100px;
+    border: 2px solid #2c2c2c;
+    background: transparent;
+    display: flex;
+    width: 140px;
+    padding: 4px 32px;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+
+    font-family: Roboto;
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 24px; /* 133.333% */
+  }
+
+  &Primary {
+    background: transparent;
+    white-space: nowrap;
+    color: #2c2c2c;
+    font-family: Roboto;
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 24px; /* 133.333% */
+  }
+}
+
+.body {
+  display: flex;
+  padding: 0 40px;
+  gap: 32px;
+  align-self: stretch;
+  justify-content: space-between;
+  align-items: center;
+  gap: 32px;
+}
+
+.searchBar {
+  align-self: stretch;
+  flex-grow: 1;
+}
+
+.bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  display: flex;
+  padding: 0 40px;
+  padding-bottom: 40px;
+  overflow-x: hidden;
+}

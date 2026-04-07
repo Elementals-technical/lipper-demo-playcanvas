@@ -1,0 +1,30 @@
+.loader {
+  width: 80px;
+  height: 80px;
+}
+
+.loader circle {
+  fill: none;
+  stroke: #eee;
+  stroke-width: 6;
+}
+
+.loader .progress {
+  stroke: #c63527;
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-dasharray: 50, 100;
+  stroke-dashoffset: 25;
+  transform-origin: center;
+  animation: rotate 2s linear infinite;
+}
+
+@keyframes rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}

@@ -1,0 +1,231 @@
+.productSettings {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.productInfo {
+  .logo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    > svg {
+      width: 95px;
+      height: auto;
+    }
+  }
+
+  .title {
+    margin-bottom: 8px;
+    color: #2c2c2c;
+    font-size: 24px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 32px; /* 133.333% */
+  }
+
+  .sku {
+    margin-bottom: 16px;
+    color: #2c2c2c;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 16px; /* 133.333% */
+  }
+
+  .price {
+    margin-bottom: 20px;
+    color: #2c2c2c;
+    font-size: 18px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 24px; /* 133.333% */
+    .value {
+      color: #2c2c2c;
+      font-size: 20px;
+      font-style: normal;
+      font-weight: 700;
+      line-height: 24px; /* 120% */
+    }
+  }
+
+  .rating {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 24px;
+    .review {
+      color: #2c2c2c;
+      font-size: 12px;
+      font-style: normal;
+      font-weight: 700;
+      line-height: 16px; /* 133.333% */
+    }
+  }
+
+  .descr {
+    margin-bottom: 12px;
+    color: #2c2c2c;
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 16px; /* 114.286% */
+  }
+
+  .note {
+    margin-bottom: 16px;
+    color: #2c2c2c;
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 16px; /* 114.286% */
+    .label {
+      font-weight: 700;
+    }
+  }
+
+  .more {
+    margin-bottom: 20px;
+  }
+}
+
+.attributes {
+  flex: 1 1 0;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  .attrBtns {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    .label {
+      color: #2c2c2c;
+      font-family: Roboto;
+      font-size: 14px;
+      font-style: normal;
+      font-weight: 400;
+      line-height: 16px; /* 114.286% */
+    }
+    .values {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .value {
+      display: flex;
+      padding: 11px 8px;
+      justify-content: center;
+      align-items: center;
+      border-radius: 4px;
+      border: 1px solid #d1d5db;
+      background: #fff;
+      color: #2c2c2c;
+      font-family: Roboto;
+      font-size: 12px;
+      font-style: normal;
+      font-weight: 400;
+      line-height: 16px; /* 133.333% */
+      &.active {
+        border: 1px solid #2c2c2c;
+      }
+    }
+  }
+}
+
+.footer {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding-top: 10px;
+  align-self: stretch;
+  background: #ffffff;
+  .toCardWrap {
+    flex: auto;
+    .btn {
+      width: 100%;
+    }
+  }
+}
+
+.counter {
+  display: flex;
+  padding: 12px 32px;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  border-radius: 100px;
+  border: 1px solid #cacaca;
+
+  color: #2c2c2c;
+  font-family: Roboto;
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 24px; /* 133.333% */
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+
+  margin: 0;
+  padding: 0;
+  border: none;
+  outline: none;
+  background: none;
+
+  font-family: inherit;
+  cursor: pointer;
+  &.btnLike {
+    color: #035d82;
+    font-family: Roboto;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 16px; /* 133.333% */
+  }
+  &.question {
+    color: #2c2c2c;
+    font-family: Roboto;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 16px; /* 133.333% */
+    text-decoration-line: underline;
+    text-decoration-style: solid;
+    text-decoration-skip-ink: auto;
+    text-decoration-thickness: auto;
+    text-underline-offset: auto;
+    text-underline-position: from-font;
+  }
+  &.more {
+    color: #035d82;
+    font-family: Roboto;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 16px; /* 133.333% */
+  }
+  &.cart {
+    display: flex;
+    padding: 12px 32px;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    flex: 1 0 0;
+    border-radius: 100px;
+    background: #dc3512;
+    color: #fff;
+    font-family: Roboto;
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 24px; /* 150% */
+  }
+}

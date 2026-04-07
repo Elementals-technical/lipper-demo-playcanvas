@@ -1,0 +1,44 @@
+.attrColors {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  .label {
+    color: #2c2c2c;
+    font-family: Roboto;
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 16px; /* 114.286% */
+  }
+  .values {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .value {
+    display: flex;
+    width: 40px;
+    height: 40px;
+    padding: 4px;
+    justify-content: center;
+    align-items: center;
+    border-radius: 4px;
+    border: 1px solid #d1d5db;
+    background: #fff;
+    &.active {
+      border: 1px solid #2c2c2c;
+    }
+    .color {
+      display: flex;
+      width: 32px;
+      height: 32px;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+      flex-shrink: 0;
+      aspect-ratio: 1/1;
+      border-radius: 4px;
+      border: 1px solid #494949;
+    }
+  }
+}

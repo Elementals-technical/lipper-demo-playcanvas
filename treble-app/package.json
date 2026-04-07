@@ -1,0 +1,27 @@
+{
+  "name": "treble-app",
+  "version": "0.1.0",
+  "dependencies": {
+    "@threekit-tools/treble": "0.0.98",
+    "@threekit-tools/treble-scripts": "0.0.45",
+    "cors": "2.8.5",
+    "eslint": "9.33.0",
+    "eslint-config-prettier": "10.1.8",
+    "eslint-plugin-prettier": "5.5.4",
+    "eslint-plugin-react": "7.37.5",
+    "express": "5.1.0",
+    "morgan": "1.10.1",
+    "prettier": "3.6.2",
+    "react": "19.1.1",
+    "react-dom": "19.1.1",
+    "tailwindcss": "3.0.23"
+  },
+  "main": "src/index.tsx",
+  "scripts": {
+    "start": "treble-scripts start",
+    "build": "treble-scripts build",
+    "format": "prettier --write ./src",
+    "lint": "eslint ./src",
+    "serve": "node server"
+  }
+}
