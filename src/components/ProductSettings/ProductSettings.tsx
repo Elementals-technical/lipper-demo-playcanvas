@@ -103,7 +103,7 @@ export const ProductSettings: React.FC = () => {
     <div className={s.panel}>
       <div className={s.header}>
         <LogoIcon />
-        <div className={s.headerTitle}>3D Configurator</div>
+        <div className={s.headerTitle}>Vivid LCI1</div>
       </div>
 
       <div className={s.content}>
