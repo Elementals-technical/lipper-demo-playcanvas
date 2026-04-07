@@ -10,100 +10,117 @@ export interface ConfiguratorState {
   annotationsVisible: boolean;
 }
 
-interface CameraAPI {
-  getYaw(): number;
-  setYaw(degrees: number): void;
-  getPitch(): number;
-  setPitch(degrees: number): void;
-  getDistance(): number;
-  setDistance(value: number): void;
-  getPivotPoint(): { x: number; y: number; z: number };
-  setPivotPoint(x: number | { x: number; y: number; z: number }, y?: number, z?: number): void;
-  reset(yaw: number, pitch: number, distance: number): void;
-  focus(entityName: string): void;
-  transitionTo(id: string, options?: { duration?: number; onComplete?: () => void }): void;
-  cancelTransition(): void;
-  resetToDefault(options?: { duration?: number }): void;
-  isTransitioning(): boolean;
-  setMouseInputEnabled(enabled: boolean): void;
-  setTouchInputEnabled(enabled: boolean): void;
-  setInputEnabled(enabled: boolean): void;
-  setAutoOrbitSpeed(speed: number): void;
-  setIdleAutoOrbitDelay(seconds: number): void;
-  setDistanceMin(value: number): void;
-  setDistanceMax(value: number): void;
-  setPitchAngleMin(degrees: number): void;
-  setPitchAngleMax(degrees: number): void;
-  getPosition(): { x: number; y: number; z: number };
-  getForward(): { x: number; y: number; z: number };
-}
-
-interface OutlineAPI {
-  getGroups(): Array<{ itemNumber: number; groupName: string; partNumber: string }>;
-  getSelectedGroup(): { itemNumber: number; groupName: string; partNumber: string } | null;
-  selectGroup(groupName: string): void;
-  deselect(): void;
-  highlightGroup(groupName: string): void;
-  clearHighlight(): void;
-}
-
-interface AnnotationsAPI {
-  show(): void;
-  hide(): void;
-  isVisible(): boolean;
-}
-
 export interface ConfiguratorAPI {
   setConfig(partial: Partial<ConfiguratorState>): Promise<void>;
   getConfig(): ConfiguratorState;
   subscribe(cb: (newState: ConfiguratorState, oldState: ConfiguratorState) => void): () => void;
   getAvailableOptions(): Record<string, unknown>;
   resetConfig(): Promise<void>;
-  camera: CameraAPI;
-  outline: OutlineAPI;
-  annotations: AnnotationsAPI;
+  camera: any;
+  outline: any;
+  annotations: { show(): void; hide(): void; isVisible(): boolean };
 }
 
 declare global {
   interface Window {
     ConfiguratorAPI?: ConfiguratorAPI;
+    __playcanvasIframe?: HTMLIFrameElement;
+  }
+}
+
+/**
+ * Sends a command to the PlayCanvas iframe via postMessage
+ */
+function postToIframe(type: string, payload?: unknown) {
+  const iframe = window.__playcanvasIframe;
+  if (iframe?.contentWindow) {
+    iframe.contentWindow.postMessage({ type, payload }, '*');
   }
 }
 
 export function useConfiguratorAPI() {
   const [api, setApi] = useState<ConfiguratorAPI | null>(null);
   const [state, setState] = useState<ConfiguratorState | null>(null);
+  const [isReady, setIsReady] = useState(false);
   const unsubRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
-    const interval = setInterval(() => {
+    // Try direct API access (same-origin)
+    const tryDirectAccess = () => {
       if (window.ConfiguratorAPI) {
-        clearInterval(interval);
         const configurator = window.ConfiguratorAPI;
         setApi(configurator);
         setState(configurator.getConfig());
         unsubRef.current = configurator.subscribe((newState) => {
           setState({ ...newState });
         });
+        setIsReady(true);
+        return true;
       }
-    }, 100);
+      return false;
+    };
+
+    // Poll for direct API
+    const interval = setInterval(() => {
+      if (tryDirectAccess()) {
+        clearInterval(interval);
+      }
+    }, 200);
+
+    // Listen for state updates from iframe (cross-origin postMessage)
+    const handleMessage = (e: MessageEvent) => {
+      const data = e.data;
+      if (!data?.type) return;
+
+      if (data.type === 'configurator:ready') {
+        setIsReady(true);
+        // Try direct access one more time
+        tryDirectAccess();
+      }
+
+      if (data.type === 'configurator:stateChange' && data.payload) {
+        setState(data.payload);
+        setIsReady(true);
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+
+    // Fallback: mark as ready when iframe exists (cross-origin without postMessage support)
+    const fallbackTimeout = setTimeout(() => {
+      if (window.__playcanvasIframe && !isReady) {
+        setIsReady(true);
+      }
+    }, 3000);
 
     return () => {
       clearInterval(interval);
+      clearTimeout(fallbackTimeout);
+      window.removeEventListener('message', handleMessage);
       unsubRef.current?.();
     };
   }, []);
 
   const setConfig = useCallback(
     async (partial: Partial<ConfiguratorState>) => {
-      if (api) await api.setConfig(partial);
+      if (api) {
+        // Direct access
+        await api.setConfig(partial);
+      } else {
+        // Cross-origin fallback via postMessage
+        postToIframe('configurator:setConfig', partial);
+      }
     },
     [api]
   );
 
   const resetConfig = useCallback(async () => {
-    if (api) await api.resetConfig();
+    if (api) {
+      await api.resetConfig();
+    } else {
+      postToIframe('configurator:resetConfig');
+    }
   }, [api]);
 
-  return { api, state, setConfig, resetConfig, isReady: !!api };
+  return { api, state, setConfig, resetConfig, isReady };
 }

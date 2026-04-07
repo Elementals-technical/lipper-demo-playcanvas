@@ -19,42 +19,46 @@ const getPlayerUrl = () => {
 
 export const PlayCanvasPlayer: React.FC = () => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [status, setStatus] = useState<'loading' | 'ready'>('loading');
+
+  useEffect(() => {
+    const handleMessage = (e: MessageEvent) => {
+      if (e.data?.type === 'configurator:ready') {
+        setStatus('ready');
+        // Store iframe ref globally for useConfiguratorAPI hook
+        (window as any).__playcanvasIframe = iframeRef.current;
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
 
   const handleLoad = useCallback(() => {
-    const iframe = iframeRef.current;
-    if (!iframe) return;
-
-    // Poll for ConfiguratorAPI inside iframe
-    const interval = setInterval(() => {
-      try {
-        const api = (iframe.contentWindow as any)?.ConfiguratorAPI;
-        if (api) {
-          clearInterval(interval);
-          // Expose on parent window so useConfiguratorAPI hook can access it
-          (window as any).ConfiguratorAPI = api;
-          setStatus('ready');
-        }
-      } catch {
-        // Cross-origin — fallback to postMessage (handled by useConfiguratorAPI)
+    // Try direct access first (same-origin)
+    try {
+      const iframe = iframeRef.current;
+      if (iframe?.contentWindow?.ConfiguratorAPI) {
+        (window as any).ConfiguratorAPI = iframe.contentWindow.ConfiguratorAPI;
+        setStatus('ready');
+        return;
       }
-    }, 100);
+    } catch {
+      // Cross-origin — expected
+    }
 
-    // Timeout after 30s
-    setTimeout(() => {
-      clearInterval(interval);
-      if (status === 'loading') {
-        setStatus('error');
-      }
-    }, 30000);
+    // Store iframe ref for postMessage communication
+    (window as any).__playcanvasIframe = iframeRef.current;
 
-    return () => clearInterval(interval);
-  }, [status]);
+    // Mark ready after short delay for cross-origin case
+    // The iframe content is rendering, we just can't access API directly
+    setTimeout(() => setStatus('ready'), 1000);
+  }, []);
 
   useEffect(() => {
     return () => {
-      // Cleanup: remove global API reference on unmount
       delete (window as any).ConfiguratorAPI;
+      delete (window as any).__playcanvasIframe;
     };
   }, []);
 
@@ -72,18 +76,8 @@ export const PlayCanvasPlayer: React.FC = () => {
       {status === 'loading' && (
         <div className={s.overlay}>
           <div className={s.loading}>
-            <div className={s.title}>Loading PlayCanvas...</div>
-            <div className={s.subtitle}>Please wait</div>
+            <div className={s.title}>Loading 3D Model...</div>
             <div className={s.spinner} />
-          </div>
-        </div>
-      )}
-
-      {status === 'error' && (
-        <div className={s.overlay}>
-          <div className={s.error}>
-            <div className={s.error_title}>Error Loading PlayCanvas</div>
-            <div className={s.error_message}>ConfiguratorAPI initialization timeout</div>
           </div>
         </div>
       )}

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { BtnDimentionsIcon } from "../../../assets/img/svg/BtnDimentionsIcon";
 import { BtnExplodeIcon } from "../../../assets/img/svg/BtnExplodeIcon";
 import { BtnFullScreenIcon } from "../../../assets/img/svg/BtnFullScreenIcon";
@@ -8,40 +9,55 @@ import s from "./PlayerWidgetBottomRight.module.scss";
 export const PlayerWidgetBottomRight = () => {
   const { state, setConfig, isReady } = useConfiguratorAPI();
 
+  // Local state fallback for cross-origin mode (when direct API state is unavailable)
+  const [localExplode, setLocalExplode] = useState(false);
+  const [localAnnotations, setLocalAnnotations] = useState(false);
+
+  const explodeActive = state?.explodeStatus ?? localExplode;
+  const annotationsActive = state?.annotationsVisible ?? localAnnotations;
+
   const handleExplode = () => {
-    if (state) {
-      setConfig({ explodeStatus: !state.explodeStatus });
-    }
+    const newValue = !explodeActive;
+    setLocalExplode(newValue);
+    setConfig({ explodeStatus: newValue });
   };
 
   const handleAnnotations = () => {
-    if (state) {
-      setConfig({ annotationsVisible: !state.annotationsVisible });
-    }
+    const newValue = !annotationsActive;
+    setLocalAnnotations(newValue);
+    setConfig({ annotationsVisible: newValue });
   };
 
   const handleFullScreen = () => {
-    const element = document.querySelector('[data-id="BTN_player_full_screen"]') as HTMLElement | null;
-    if (element) {
-      element.click();
+    const playerContainer = document.querySelector('[data-status]') as HTMLElement;
+    if (playerContainer) {
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+      } else {
+        playerContainer.requestFullscreen();
+      }
     }
   };
 
-  if (!isReady || !state) return null;
+  if (!isReady) return null;
 
   return (
     <div className={s.playerWidgetBottomRight}>
       <Button
-        className={`${s.btn} ${state.explodeStatus ? s.active : ""}`}
+        className={`${s.btn} ${explodeActive ? s.active : ""}`}
         iconBefore={<BtnExplodeIcon />}
         onClick={handleExplode}
       />
       <Button
-        className={`${s.btn} ${state.annotationsVisible ? s.active : ""}`}
+        className={`${s.btn} ${annotationsActive ? s.active : ""}`}
         iconBefore={<BtnDimentionsIcon />}
         onClick={handleAnnotations}
       />
-      <Button className={s.btn} iconBefore={<BtnFullScreenIcon />} onClick={handleFullScreen} />
+      <Button
+        className={s.btn}
+        iconBefore={<BtnFullScreenIcon />}
+        onClick={handleFullScreen}
+      />
     </div>
   );
 };
