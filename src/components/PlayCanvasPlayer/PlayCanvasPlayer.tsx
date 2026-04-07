@@ -56,6 +56,9 @@ const cleanupPlayCanvas = (urls: PlayCanvasUrls) => {
     const href = (el as HTMLLinkElement).href ?? '';
     if (href.includes(urls.base)) el.remove();
   });
+
+  // Remove PlayCanvas native loading screen if still present
+  document.getElementById('application-spinner')?.remove();
 };
 
 const addLink = (href: string, rel: string, type?: string): void => {
@@ -100,7 +103,7 @@ const waitForConfiguratorAPI = async (timeoutMs = 30000): Promise<boolean> => {
 
 export const PlayCanvasPlayer: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [status, setStatus] = useState<'loading' | 'fading' | 'ready' | 'error'>('loading');
 
   useEffect(() => {
     let isMounted = true;
@@ -129,7 +132,20 @@ export const PlayCanvasPlayer: React.FC = () => {
         await waitForConfiguratorAPI(30000);
         if (!isMounted) return;
 
-        setStatus('ready');
+        // Remove PlayCanvas native loader
+        document.getElementById('application-spinner')?.remove();
+
+        // Fake 1s delay — let first frame render
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        if (!isMounted) return;
+
+        // Start fade-out
+        setStatus('fading');
+
+        // After fade animation completes
+        setTimeout(() => {
+          if (isMounted) setStatus('ready');
+        }, 500);
       } catch (err) {
         if (!isMounted) return;
         console.error('PlayCanvas init failed:', err);
@@ -145,15 +161,20 @@ export const PlayCanvasPlayer: React.FC = () => {
     };
   }, []);
 
+  const showOverlay = status === 'loading' || status === 'fading';
+
   return (
     <div ref={containerRef} className={s.container} data-status={status}>
       <canvas id="application-canvas" className={s.canvas} />
 
-      {status === 'loading' && (
-        <div className={s.overlay}>
-          <div className={s.loading}>
-            <div className={s.title}>Loading 3D Model...</div>
-            <div className={s.spinner} />
+      {showOverlay && (
+        <div className={`${s.overlay} ${status === 'fading' ? s.fadeOut : ''}`}>
+          <div className={s.splash}>
+            <div className={s.loader}>
+              <div className={s.loaderDot} />
+              <div className={s.loaderDot} />
+            </div>
+            <div className={s.splashText}>Personalising your experience...</div>
           </div>
         </div>
       )}
