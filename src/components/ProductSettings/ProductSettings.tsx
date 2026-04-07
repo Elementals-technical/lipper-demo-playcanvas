@@ -42,8 +42,8 @@ export const ProductSettings: React.FC = () => {
           <div className={s.waiting}>Waiting for 3D model...</div>
         ) : (
           <>
-            {/* Explode */}
-            <div className={s.section}>
+            {/* Explode + Annotations row */}
+            <div className={s.actionRow}>
               <button
                 className={`${s.actionBtn} ${state?.explodeStatus ? s.active : ""}`}
                 onClick={() => handleToggle("explodeStatus")}
@@ -52,6 +52,15 @@ export const ProductSettings: React.FC = () => {
                   <path d="M12 2L2 7l10 5 10-5-10-5z" /><path d="M2 17l10 5 10-5" /><path d="M2 12l10 5 10-5" />
                 </svg>
                 {state?.explodeStatus ? "Collapse" : "Explode"}
+              </button>
+              <button
+                className={`${s.actionBtn} ${state?.annotationsVisible ? s.active : ""}`}
+                onClick={() => handleToggle("annotationsVisible")}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
+                Annotations
               </button>
             </div>
 
@@ -91,20 +100,6 @@ export const ProductSettings: React.FC = () => {
               </div>
             </div>
 
-            {/* Annotations */}
-            <div className={s.section}>
-              <label className={s.toggle}>
-                <input
-                  type="checkbox"
-                  checked={!!state?.annotationsVisible}
-                  onChange={() => handleToggle("annotationsVisible")}
-                />
-                <span className={s.toggleTrack}>
-                  <span className={s.toggleThumb} />
-                </span>
-                <span className={s.toggleLabel}>Show Annotations</span>
-              </label>
-            </div>
           </>
         )}
       </div>

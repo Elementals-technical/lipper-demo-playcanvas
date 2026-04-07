@@ -63,13 +63,18 @@
   letter-spacing: 1px;
 }
 
-// Action button (Explode)
+// Action buttons row
+.actionRow {
+  display: flex;
+  gap: 8px;
+}
+
 .actionBtn {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  width: 100%;
+  flex: 1;
   padding: 12px 16px;
   border: 2px solid #e5e7eb;
   border-radius: 8px;
