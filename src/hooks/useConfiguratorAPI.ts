@@ -24,17 +24,6 @@ export interface ConfiguratorAPI {
 declare global {
   interface Window {
     ConfiguratorAPI?: ConfiguratorAPI;
-    __playcanvasIframe?: HTMLIFrameElement;
-  }
-}
-
-/**
- * Sends a command to the PlayCanvas iframe via postMessage
- */
-function postToIframe(type: string, payload?: unknown) {
-  const iframe = window.__playcanvasIframe;
-  if (iframe?.contentWindow) {
-    iframe.contentWindow.postMessage({ type, payload }, '*');
   }
 }
 
@@ -45,81 +34,35 @@ export function useConfiguratorAPI() {
   const unsubRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
-    // Try direct API access (same-origin)
-    const tryDirectAccess = () => {
+    const interval = setInterval(() => {
       if (window.ConfiguratorAPI) {
+        clearInterval(interval);
         const configurator = window.ConfiguratorAPI;
         setApi(configurator);
         setState(configurator.getConfig());
+        setIsReady(true);
+
         unsubRef.current = configurator.subscribe((newState) => {
           setState({ ...newState });
         });
-        setIsReady(true);
-        return true;
-      }
-      return false;
-    };
-
-    // Poll for direct API
-    const interval = setInterval(() => {
-      if (tryDirectAccess()) {
-        clearInterval(interval);
       }
     }, 200);
 
-    // Listen for state updates from iframe (cross-origin postMessage)
-    const handleMessage = (e: MessageEvent) => {
-      const data = e.data;
-      if (!data?.type) return;
-
-      if (data.type === 'configurator:ready') {
-        setIsReady(true);
-        // Try direct access one more time
-        tryDirectAccess();
-      }
-
-      if (data.type === 'configurator:stateChange' && data.payload) {
-        setState(data.payload);
-        setIsReady(true);
-      }
-    };
-
-    window.addEventListener('message', handleMessage);
-
-    // Fallback: mark as ready when iframe exists (cross-origin without postMessage support)
-    const fallbackTimeout = setTimeout(() => {
-      if (window.__playcanvasIframe && !isReady) {
-        setIsReady(true);
-      }
-    }, 3000);
-
     return () => {
       clearInterval(interval);
-      clearTimeout(fallbackTimeout);
-      window.removeEventListener('message', handleMessage);
       unsubRef.current?.();
     };
   }, []);
 
   const setConfig = useCallback(
     async (partial: Partial<ConfiguratorState>) => {
-      if (api) {
-        // Direct access
-        await api.setConfig(partial);
-      } else {
-        // Cross-origin fallback via postMessage
-        postToIframe('configurator:setConfig', partial);
-      }
+      if (api) await api.setConfig(partial);
     },
     [api]
   );
 
   const resetConfig = useCallback(async () => {
-    if (api) {
-      await api.resetConfig();
-    } else {
-      postToIframe('configurator:resetConfig');
-    }
+    if (api) await api.resetConfig();
   }, [api]);
 
   return { api, state, setConfig, resetConfig, isReady };
