@@ -6,10 +6,20 @@
   position: relative;
   display: flex;
   flex-direction: column;
+
+  @media (max-width: 768px) {
+    height: auto;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
 }
 
 .contentWrap {
   width: 100%;
   flex: 1 1 0;
   min-height: 0;
+
+  @media (max-width: 768px) {
+    flex: none;
+  }
 }

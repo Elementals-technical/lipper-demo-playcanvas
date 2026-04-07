@@ -4,6 +4,12 @@ html,
 body {
   margin: 0;
   font-family: "Roboto", sans-serif;
+  background: #fff;
+}
+
+#tk-treble-root {
+  min-height: 100vh;
+  background: #fff;
 }
 
 [data-id="BTN_player_full_screen"],

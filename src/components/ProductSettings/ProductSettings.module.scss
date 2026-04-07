@@ -6,6 +6,12 @@
   border-radius: 12px;
   border: 1px solid #e5e7eb;
   overflow: hidden;
+
+  @media (max-width: 768px) {
+    border-radius: 0;
+    border: none;
+    border-top: 1px solid #e5e7eb;
+  }
 }
 
 // Header
@@ -20,6 +26,10 @@
   > svg {
     width: 80px;
     height: auto;
+  }
+
+  @media (max-width: 768px) {
+    padding: 16px;
   }
 }
 
@@ -39,6 +49,11 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
+
+  @media (max-width: 768px) {
+    padding: 16px;
+    gap: 20px;
+  }
 }
 
 .waiting {
@@ -96,6 +111,11 @@
     border-color: #035d82;
     color: #fff;
   }
+
+  @media (max-width: 480px) {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
 }
 
 // Toggle switches
@@ -103,6 +123,16 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+
+  @media (max-width: 768px) {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 16px;
+  }
+
+  @media (max-width: 400px) {
+    grid-template-columns: 1fr;
+  }
 }
 
 .toggle {
@@ -142,13 +172,8 @@
   border-radius: 50%;
   transition: transform 0.2s ease;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-
-  input:checked ~ .toggleTrack & {
-    transform: translateX(16px);
-  }
 }
 
-// Fix: target thumb inside checked toggle
 .toggle input:checked + .toggleTrack .toggleThumb {
   transform: translateX(16px);
 }
@@ -158,6 +183,10 @@
   font-size: 14px;
   font-weight: 400;
   line-height: 20px;
+
+  @media (max-width: 480px) {
+    font-size: 13px;
+  }
 }
 
 // Camera grid
@@ -165,6 +194,14 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(6, 1fr);
+  }
+
+  @media (max-width: 480px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 .cameraBtn {
@@ -196,6 +233,10 @@
 .footer {
   padding: 16px 24px;
   border-top: 1px solid #e5e7eb;
+
+  @media (max-width: 768px) {
+    padding: 16px;
+  }
 }
 
 .resetBtn {
