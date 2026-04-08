@@ -86,15 +86,14 @@ const addImportMap = (baseUrl: string, cacheBust: string) => {
   document.head.appendChild(script);
 };
 
-const loadModuleScript = (src: string, cacheBust: string): Promise<void> => {
-  const fullSrc = `${src}?v=${cacheBust}`;
-  const existing = document.querySelector(`script[src="${fullSrc}"]`);
+const loadModuleScript = (src: string): Promise<void> => {
+  const existing = document.querySelector(`script[src="${src}"]`);
   if (existing) return Promise.resolve();
 
   return new Promise((resolve, reject) => {
     const script = document.createElement('script');
     script.type = 'module';
-    script.src = fullSrc;
+    script.src = src;
     script.onload = () => resolve();
     script.onerror = () => reject(new Error(`Failed to load: ${src}`));
     document.body.appendChild(script);
@@ -142,7 +141,7 @@ export const PlayCanvasPlayer: React.FC<PlayCanvasPlayerProps> = ({ productId })
         await new Promise((resolve) => setTimeout(resolve, 100));
         if (!isMounted) return;
 
-        await loadModuleScript(urls.indexScript, cacheBust);
+        await loadModuleScript(urls.indexScript);
         if (!isMounted) return;
 
         await waitForConfiguratorAPI(30000);

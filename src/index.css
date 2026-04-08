@@ -1,15 +1,28 @@
 @import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Open+Sans:wdth,wght@75..100,300..800&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
 
+:root {
+  --color-main-bg: #F6F7FD;
+  --color-white: #FFFFFF;
+  --color-content-main: #343A40;
+  --color-border: #E3E5FA;
+  --color-accent: #37CC8F;
+  --color-warning: #FF4B4B;
+  --color-link: #2A8EFA;
+  --color-content-light: #6C757D;
+  --shadow-base: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --font-primary: "Futura PT", "Roboto", sans-serif;
+}
+
 html,
 body {
   margin: 0;
-  font-family: "Roboto", sans-serif;
-  background: #fff;
+  font-family: var(--font-primary);
+  background: var(--color-main-bg);
 }
 
 #tk-treble-root {
   min-height: 100vh;
-  background: #fff;
+  background: var(--color-main-bg);
 }
 
 [data-id="BTN_player_full_screen"],
