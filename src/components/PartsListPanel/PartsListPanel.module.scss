@@ -1,5 +1,6 @@
 // PartsListPanel - Collapsible parts list overlay
 
+// ── Collapsed pill button ──
 .collapsedButton {
   position: absolute;
   top: 20px;
@@ -19,6 +20,13 @@
   font-size: 14px;
   line-height: 20px;
   color: var(--color-content-main);
+  opacity: 0;
+  transform: translateY(-8px) scale(0.95);
+  transition: opacity 0.25s ease, transform 0.25s ease, background 0.15s ease;
+
+  &:hover {
+    background: #f0f1f8;
+  }
 
   svg {
     width: 24px;
@@ -27,6 +35,12 @@
   }
 }
 
+.collapsedButtonVisible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+// ── Panel ──
 .panel {
   position: absolute;
   top: 20px;
@@ -38,14 +52,76 @@
   border-radius: 10px;
   box-shadow: var(--shadow-base);
   overflow: hidden;
+  transform-origin: top left;
 
   @media (max-width: 768px) {
     width: 350px;
     left: 50%;
-    transform: translateX(-50%);
+    transform-origin: top center;
   }
 }
 
+.panelOpen {
+  animation: panelSlideIn 0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+
+  @media (max-width: 768px) {
+    animation: panelSlideInMobile 0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+}
+
+.panelClosing {
+  animation: panelSlideOut 0.3s cubic-bezier(0.55, 0, 1, 0.45) forwards;
+
+  @media (max-width: 768px) {
+    animation: panelSlideOutMobile 0.3s cubic-bezier(0.55, 0, 1, 0.45) forwards;
+  }
+}
+
+@keyframes panelSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes panelSlideOut {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.96);
+  }
+}
+
+@keyframes panelSlideInMobile {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-12px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+
+@keyframes panelSlideOutMobile {
+  from {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-12px) scale(0.96);
+  }
+}
+
+// ── Header (clickable to close) ──
 .header {
   display: flex;
   align-items: center;
@@ -54,6 +130,13 @@
   background: var(--color-white);
   border-bottom: 1px solid var(--color-border);
   border-radius: 10px 10px 0 0;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: #fafbff;
+  }
 }
 
 .headerTitle {
@@ -81,6 +164,11 @@
   border: none;
   cursor: pointer;
   padding: 0;
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: rotate(90deg);
+  }
 
   svg {
     width: 24px;
@@ -89,6 +177,7 @@
   }
 }
 
+// ── Body ──
 .body {
   background: var(--color-white);
   padding: 16px 20px 0;
@@ -118,12 +207,14 @@
   gap: 8px;
 }
 
+// ── Part rows ──
 .partRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 16px 4px;
   border-bottom: 1px solid var(--color-border);
+  transition: opacity 0.2s ease;
 
   &:last-child {
     border-bottom: none;
@@ -135,6 +226,8 @@
 }
 
 .partRowHidden {
+  opacity: 0.7;
+
   .partName {
     color: var(--color-content-light);
   }
@@ -146,6 +239,7 @@
   font-size: 16px;
   line-height: 24px;
   color: var(--color-content-main);
+  transition: color 0.2s ease;
 }
 
 .partButtons {
@@ -162,11 +256,21 @@
   border: none;
   cursor: pointer;
   padding: 0;
+  transition: transform 0.15s ease;
+
+  &:hover {
+    transform: scale(1.15);
+  }
+
+  &:active {
+    transform: scale(0.9);
+  }
 
   svg {
     width: 24px;
     height: 24px;
     color: var(--color-content-main);
+    transition: color 0.2s ease;
   }
 
   .partRowHidden & svg {
@@ -174,7 +278,7 @@
   }
 }
 
-// Toggle switch
+// ── Toggle switch ──
 .toggle {
   position: relative;
   width: 44px;
@@ -186,7 +290,7 @@
   padding: 2px;
   display: flex;
   align-items: center;
-  transition: background 0.2s ease;
+  transition: background 0.25s ease;
 }
 
 .toggleOn {
@@ -200,7 +304,7 @@
   background: var(--color-white);
   border-radius: 50%;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
-  transition: transform 0.2s ease;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 
   .toggleOn & {
     transform: translateX(20px);

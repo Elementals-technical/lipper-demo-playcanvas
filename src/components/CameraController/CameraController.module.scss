@@ -18,6 +18,7 @@
   }
 }
 
+// ── Pill buttons ──
 .pillButton {
   display: flex;
   align-items: center;
@@ -36,9 +37,14 @@
   line-height: 20px;
   color: var(--color-content-main);
   white-space: nowrap;
+  transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
 
   &:hover {
     background: #f0f1f8;
+  }
+
+  &:active {
+    transform: scale(0.96);
   }
 
   @media (max-width: 768px) {
@@ -47,7 +53,52 @@
   }
 }
 
-// Circular controller orb
+// ── Reset button animation ──
+.resetButton {
+  gap: 6px;
+  overflow: hidden;
+}
+
+.resetIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s ease;
+}
+
+.resetIconSpin {
+  animation: resetSpin 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.resetActive {
+  animation: resetPulse 0.8s ease;
+}
+
+@keyframes resetSpin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(-360deg);
+  }
+}
+
+@keyframes resetPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(55, 204, 143, 0.4);
+    border-color: var(--color-accent);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(55, 204, 143, 0);
+    border-color: var(--color-accent);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(55, 204, 143, 0);
+    border-color: var(--color-border);
+  }
+}
+
+// ── Circular controller orb ──
 .orb {
   position: relative;
   width: 120px;
@@ -56,6 +107,11 @@
   border: 1px solid var(--color-border);
   border-radius: 50%;
   overflow: visible;
+  transition: box-shadow 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
 }
 
 .arm {
@@ -67,6 +123,15 @@
   border: none;
   cursor: pointer;
   padding: 0;
+  transition: transform 0.15s ease;
+
+  &:hover {
+    transform: scale(1.1);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
 }
 
 .armTop {
@@ -74,6 +139,14 @@
   left: 50%;
   transform: translateX(-50%);
   flex-direction: column;
+
+  &:hover {
+    transform: translateX(-50%) scale(1.1);
+  }
+
+  &:active {
+    transform: translateX(-50%) scale(0.95);
+  }
 }
 
 .armBot {
@@ -81,6 +154,14 @@
   left: 50%;
   transform: translateX(-50%);
   flex-direction: column;
+
+  &:hover {
+    transform: translateX(-50%) scale(1.1);
+  }
+
+  &:active {
+    transform: translateX(-50%) scale(0.95);
+  }
 }
 
 .armLeft {
@@ -94,6 +175,14 @@
   top: 51px;
   transform: translateX(100%);
   flex-direction: row;
+
+  &:hover {
+    transform: translateX(100%) scale(1.1);
+  }
+
+  &:active {
+    transform: translateX(100%) scale(0.95);
+  }
 }
 
 .dot {
@@ -104,6 +193,11 @@
   margin: -4px 0;
   z-index: 2;
   position: relative;
+  transition: box-shadow 0.15s ease;
+
+  .arm:hover & {
+    box-shadow: 0 0 6px currentColor;
+  }
 }
 
 .line {
@@ -142,4 +236,14 @@
   border: none;
   cursor: pointer;
   z-index: 3;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    transform: translate(-50%, -50%) scale(1.2);
+    box-shadow: 0 0 8px rgba(42, 142, 250, 0.5);
+  }
+
+  &:active {
+    transform: translate(-50%, -50%) scale(0.9);
+  }
 }

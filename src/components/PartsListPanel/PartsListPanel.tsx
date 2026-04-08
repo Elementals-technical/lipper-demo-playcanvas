@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useAttribute } from '../../configurator';
 import { useConfiguratorAPI } from '../../hooks/useConfiguratorAPI';
 import s from './PartsListPanel.module.scss';
@@ -93,10 +93,32 @@ const ExplodeToggle = ({ name }: { name: string }) => {
 
 export const PartsListPanel = () => {
   const [isOpen, setIsOpen] = useState(true);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [showCollapsed, setShowCollapsed] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
 
+  const handleClose = () => {
+    setIsAnimating(true);
+    // After panel slides out, show collapsed button
+    setTimeout(() => {
+      setIsOpen(false);
+      setShowCollapsed(true);
+      setIsAnimating(false);
+    }, 300);
+  };
+
+  const handleOpen = () => {
+    setShowCollapsed(false);
+    setIsOpen(true);
+  };
+
+  // Collapsed button with fade-in
   if (!isOpen) {
     return (
-      <button className={s.collapsedButton} onClick={() => setIsOpen(true)}>
+      <button
+        className={clsx(s.collapsedButton, showCollapsed && s.collapsedButtonVisible)}
+        onClick={handleOpen}
+      >
         <CogIcon />
         <span>Parts List</span>
       </button>
@@ -104,13 +126,19 @@ export const PartsListPanel = () => {
   }
 
   return (
-    <div className={s.panel}>
-      <div className={s.header}>
+    <div
+      ref={panelRef}
+      className={clsx(s.panel, isAnimating ? s.panelClosing : s.panelOpen)}
+    >
+      <div className={s.header} onClick={handleClose} role="button" tabIndex={0}>
         <div className={s.headerTitle}>
           <CogIcon />
           <span>Parts List</span>
         </div>
-        <button className={s.closeButton} onClick={() => setIsOpen(false)}>
+        <button
+          className={s.closeButton}
+          onClick={(e) => { e.stopPropagation(); handleClose(); }}
+        >
           <CloseIcon />
         </button>
       </div>
