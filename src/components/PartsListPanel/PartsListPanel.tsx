@@ -1,15 +1,14 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { useAttribute } from '../../configurator';
 import { useConfiguratorAPI } from '../../hooks/useConfiguratorAPI';
 import s from './PartsListPanel.module.scss';
 import clsx from 'clsx';
 
-const ASSEMBLIES = [
-  { name: 'Axle Assembly', hasExplode: true },
-  { name: 'Hub Assembly', hasExplode: true },
-  { name: 'Spindle Assembly', hasExplode: false },
-  { name: 'Spring Assembly', hasExplode: false },
-  { name: 'Brake Assembly', hasExplode: false },
+const SUB_ASSEMBLIES = [
+  'Hub Assembly',
+  'Spindle Assembly',
+  'Spring Assembly',
+  'Brake Assembly',
 ];
 
 const CogIcon = () => (
@@ -42,52 +41,53 @@ const EyeDisabledIcon = () => (
   </svg>
 );
 
-interface PartRowProps {
-  name: string;
-  hasExplode: boolean;
-}
-
-const PartRow = ({ name, hasExplode }: PartRowProps) => {
+const PartRow = ({ name }: { name: string }) => {
   const [attribute, setAttribute] = useAttribute(name);
-
   if (!attribute) return null;
 
   const isVisible = attribute.value === true;
 
-  const toggleVisibility = () => {
-    setAttribute(!isVisible);
-  };
-
   return (
     <div className={clsx(s.partRow, !isVisible && s.partRowHidden)}>
       <span className={s.partName}>{name}</span>
-      <div className={s.partButtons}>
-        {hasExplode && (
-          <ExplodeToggle name={name} />
-        )}
-        <button className={s.eyeButton} onClick={toggleVisibility}>
-          {isVisible ? <EyeIcon /> : <EyeDisabledIcon />}
-        </button>
-      </div>
+      <button className={s.eyeButton} onClick={() => setAttribute(!isVisible)}>
+        {isVisible ? <EyeIcon /> : <EyeDisabledIcon />}
+      </button>
     </div>
   );
 };
 
-const ExplodeToggle = ({ name }: { name: string }) => {
+const ExplodeToggle = () => {
   const { state, setConfig } = useConfiguratorAPI();
   const isOn = state?.explodeStatus ?? false;
 
-  const toggle = () => {
-    setConfig({ explodeStatus: !isOn });
-  };
+  return (
+    <div className={s.actionToggle}>
+      <span className={s.actionLabel}>Explode</span>
+      <button
+        className={clsx(s.toggle, isOn && s.toggleOn)}
+        onClick={() => setConfig({ explodeStatus: !isOn })}
+      >
+        <span className={s.toggleThumb} />
+      </button>
+    </div>
+  );
+};
+
+const AnnotationsToggle = () => {
+  const { state, setConfig } = useConfiguratorAPI();
+  const isOn = state?.annotationsVisible ?? false;
 
   return (
-    <button
-      className={clsx(s.toggle, isOn && s.toggleOn)}
-      onClick={toggle}
-    >
-      <span className={s.toggleThumb} />
-    </button>
+    <div className={s.actionToggle}>
+      <span className={s.actionLabel}>Show</span>
+      <button
+        className={clsx(s.toggle, isOn && s.toggleOn)}
+        onClick={() => setConfig({ annotationsVisible: !isOn })}
+      >
+        <span className={s.toggleThumb} />
+      </button>
+    </div>
   );
 };
 
@@ -95,11 +95,9 @@ export const PartsListPanel = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [isAnimating, setIsAnimating] = useState(false);
   const [showCollapsed, setShowCollapsed] = useState(false);
-  const panelRef = useRef<HTMLDivElement>(null);
 
   const handleClose = () => {
     setIsAnimating(true);
-    // After panel slides out, show collapsed button
     setTimeout(() => {
       setIsOpen(false);
       setShowCollapsed(true);
@@ -112,7 +110,6 @@ export const PartsListPanel = () => {
     setIsOpen(true);
   };
 
-  // Collapsed button with fade-in
   if (!isOpen) {
     return (
       <button
@@ -126,10 +123,7 @@ export const PartsListPanel = () => {
   }
 
   return (
-    <div
-      ref={panelRef}
-      className={clsx(s.panel, isAnimating ? s.panelClosing : s.panelOpen)}
-    >
+    <div className={clsx(s.panel, isAnimating ? s.panelClosing : s.panelOpen)}>
       <div className={s.header} onClick={handleClose} role="button" tabIndex={0}>
         <div className={s.headerTitle}>
           <CogIcon />
@@ -143,20 +137,22 @@ export const PartsListPanel = () => {
         </button>
       </div>
       <div className={s.body}>
+        {/* Parent assembly with explode */}
+        <div className={s.parentRow}>
+          <span className={s.parentName}>Axle Assembly</span>
+          <ExplodeToggle />
+        </div>
+
+        {/* Annotations toggle */}
+        <div className={s.parentRow}>
+          <span className={s.parentName}>Annotations</span>
+          <AnnotationsToggle />
+        </div>
+
+        {/* Sub-assembly list */}
         <div className={s.list}>
-          <div className={s.listHeader}>
-            <span>Name</span>
-            <div className={s.listHeaderRight}>
-              <span>Explode</span>
-              <span>Show</span>
-            </div>
-          </div>
-          {ASSEMBLIES.map((assembly) => (
-            <PartRow
-              key={assembly.name}
-              name={assembly.name}
-              hasExplode={assembly.hasExplode}
-            />
+          {SUB_ASSEMBLIES.map((name) => (
+            <PartRow key={name} name={name} />
           ))}
         </div>
       </div>
