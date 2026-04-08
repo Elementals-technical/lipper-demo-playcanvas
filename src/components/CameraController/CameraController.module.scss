@@ -13,7 +13,6 @@
 
   @media (max-width: 768px) {
     gap: 12px;
-    bottom: 0;
     padding-bottom: 20px;
   }
 }
@@ -53,7 +52,7 @@
   }
 }
 
-// ── Reset button animation ──
+// ── Reset button ──
 .resetButton {
   gap: 6px;
   overflow: hidden;
@@ -75,12 +74,8 @@
 }
 
 @keyframes resetSpin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(-360deg);
-  }
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(-360deg); }
 }
 
 @keyframes resetPulse {
@@ -98,152 +93,8 @@
   }
 }
 
-// ── Circular controller orb ──
-.orb {
-  position: relative;
-  width: 120px;
-  height: 120px;
-  background: var(--color-white);
-  border: 1px solid var(--color-border);
-  border-radius: 50%;
-  overflow: visible;
-  transition: box-shadow 0.2s ease;
-
-  &:hover {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  }
-}
-
-.arm {
-  position: absolute;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background: none;
-  border: none;
+// ── Canvas Gizmo ──
+.gizmoCanvas {
   cursor: pointer;
-  padding: 0;
-  transition: transform 0.15s ease;
-
-  &:hover {
-    transform: scale(1.1);
-  }
-
-  &:active {
-    transform: scale(0.95);
-  }
-}
-
-.armTop {
-  top: 8px;
-  left: 50%;
-  transform: translateX(-50%);
-  flex-direction: column;
-
-  &:hover {
-    transform: translateX(-50%) scale(1.1);
-  }
-
-  &:active {
-    transform: translateX(-50%) scale(0.95);
-  }
-}
-
-.armBot {
-  bottom: 8px;
-  left: 50%;
-  transform: translateX(-50%);
-  flex-direction: column;
-
-  &:hover {
-    transform: translateX(-50%) scale(1.1);
-  }
-
-  &:active {
-    transform: translateX(-50%) scale(0.95);
-  }
-}
-
-.armLeft {
-  left: 59px;
-  top: 51px;
-  flex-direction: row;
-}
-
-.armRight {
-  right: 59px;
-  top: 51px;
-  transform: translateX(100%);
-  flex-direction: row;
-
-  &:hover {
-    transform: translateX(100%) scale(1.1);
-  }
-
-  &:active {
-    transform: translateX(100%) scale(0.95);
-  }
-}
-
-.dot {
-  display: block;
-  width: 16px;
-  height: 16px;
   border-radius: 50%;
-  margin: -4px 0;
-  z-index: 2;
-  position: relative;
-  transition: box-shadow 0.15s ease;
-
-  .arm:hover & {
-    box-shadow: 0 0 6px currentColor;
-  }
-}
-
-.line {
-  display: block;
-  z-index: 1;
-  position: relative;
-}
-
-.armTop .line,
-.armBot .line {
-  width: 2px;
-  height: 40px;
-  margin: -4px 0;
-}
-
-.armLeft .line,
-.armRight .line {
-  width: 40px;
-  height: 2px;
-  margin: 0 -4px;
-}
-
-.armLeft .dot,
-.armRight .dot {
-  margin: 0 -4px;
-}
-
-.center {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  border: none;
-  cursor: pointer;
-  z-index: 3;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-
-  &:hover {
-    transform: translate(-50%, -50%) scale(1.2);
-    box-shadow: 0 0 8px rgba(42, 142, 250, 0.5);
-  }
-
-  &:active {
-    transform: translate(-50%, -50%) scale(0.9);
-  }
 }
