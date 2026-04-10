@@ -340,12 +340,11 @@ app.get('/ar/view/:id', (req, res) => {
   res.send(html);
 });
 
-app.use('/', (req, res, next) => {
-  const env = req.subdomains[0] || 'dev';
-  req.url = `/${env}${req.originalUrl}`;
-  next();
-});
-
 app.use(express.static(path.join(__dirname, 'build')));
+
+// SPA fallback — serve index.html for all non-API routes
+app.get('{*path}', (req, res) => {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+});
 
 app.listen(PORT, () => console.log('listening on port: ', PORT));
