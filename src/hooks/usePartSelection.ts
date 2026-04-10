@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 
 export interface PartData {
   groupName: string;
@@ -21,9 +21,45 @@ export interface PartData {
   } | null;
 }
 
+const DRAG_THRESHOLD_PX = 5;
+
 export function usePartSelection() {
   const [selectedPart, setSelectedPart] = useState<PartData | null>(null);
   const [isApiReady, setIsApiReady] = useState(false);
+  const dragRef = useRef({ startX: 0, startY: 0, isDown: false, moved: false });
+
+  useEffect(() => {
+    const onDown = (e: PointerEvent) => {
+      dragRef.current = {
+        startX: e.clientX,
+        startY: e.clientY,
+        isDown: true,
+        moved: false,
+      };
+    };
+    const onMove = (e: PointerEvent) => {
+      const d = dragRef.current;
+      if (!d.isDown || d.moved) return;
+      const dx = e.clientX - d.startX;
+      const dy = e.clientY - d.startY;
+      if (dx * dx + dy * dy > DRAG_THRESHOLD_PX * DRAG_THRESHOLD_PX) {
+        d.moved = true;
+      }
+    };
+    const onUp = () => {
+      dragRef.current.isDown = false;
+    };
+
+    window.addEventListener('pointerdown', onDown, true);
+    window.addEventListener('pointermove', onMove, true);
+    window.addEventListener('pointerup', onUp, true);
+
+    return () => {
+      window.removeEventListener('pointerdown', onDown, true);
+      window.removeEventListener('pointermove', onMove, true);
+      window.removeEventListener('pointerup', onUp, true);
+    };
+  }, []);
 
   useEffect(() => {
     let unsubSelect: (() => void) | null = null;
@@ -34,6 +70,7 @@ export function usePartSelection() {
       if (!api?.outline) return false;
 
       unsubSelect = api.outline.onSelect((data: PartData) => {
+        if (dragRef.current.moved) return;
         setSelectedPart(data);
       });
       unsubDeselect = api.outline.onDeselect(() => {
