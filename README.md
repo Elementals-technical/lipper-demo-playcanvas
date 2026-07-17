@@ -118,8 +118,12 @@ npm run format
 
 ```ts
 // src/configurator/productInstance.ts
-export const PRODUCT_ID = 2669;
+export const DEFAULT_PRODUCT_ID = 2669;
 ```
+
+`ProductProvider` на рівні router читає параметр, перевіряє його та зберігає
+поточний `productId` у Redux. Компоненти конфігуратора використовують значення
+зі store, а не читають параметр маршруту повторно.
 
 PlayCanvas bundle вантажиться з DigitalOcean Spaces/CDN:
 

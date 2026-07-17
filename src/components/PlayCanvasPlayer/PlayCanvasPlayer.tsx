@@ -9,16 +9,13 @@
 
 import React, { useRef, useEffect, useState } from 'react';
 import s from './PlayCanvasPlayer.module.scss';
+import { useAppSelector } from '../../store/store';
+import { getProductId } from '../../store/slices/configurator/selectors/selectors';
 
 const PLAYCANVAS_DEFAULTS = {
   baseUrl: 'https://2d-render-admin-storage.fra1.cdn.digitaloceanspaces.com',
   idProject: '428',
-  idProduct: '2669',
 } as const;
-
-export interface PlayCanvasPlayerProps {
-  productId?: string;
-}
 
 const generateUrls = (baseUrl: string, idProject: string, idProduct: string) => {
   const base = `${baseUrl}/projects/${idProject}/products/${idProduct}/playcanvas/`;
@@ -109,8 +106,9 @@ const waitForConfiguratorAPI = async (timeoutMs = 30000): Promise<boolean> => {
   return false;
 };
 
-export const PlayCanvasPlayer: React.FC<PlayCanvasPlayerProps> = ({ productId }) => {
-  const resolvedProductId = productId || PLAYCANVAS_DEFAULTS.idProduct;
+export const PlayCanvasPlayer: React.FC = () => {
+  const productId = useAppSelector(getProductId);
+  const resolvedProductId = String(productId);
   const containerRef = useRef<HTMLDivElement>(null);
   const [status, setStatus] = useState<'loading' | 'fading' | 'ready' | 'error'>('loading');
 

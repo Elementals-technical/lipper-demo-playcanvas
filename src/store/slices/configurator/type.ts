@@ -5,6 +5,7 @@ export interface AttributeState {
 }
 
 export interface ConfiguratorStateI {
+  productId: number;
   isProcessing: boolean;
   stageCamera: number;
   attributes: Record<string, AttributeState>;

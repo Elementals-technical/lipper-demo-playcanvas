@@ -1,7 +1,9 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import { ConfiguratorStateI, AttributeState } from "./type";
+import { DEFAULT_PRODUCT_ID } from "../../../configurator/productInstance";
 
 const initialState: ConfiguratorStateI = {
+  productId: DEFAULT_PRODUCT_ID,
   isProcessing: false,
   stageCamera: 1,
   attributes: {},
@@ -12,6 +14,9 @@ export const configuratorSlice = createSlice({
   name: "configurator",
   initialState,
   reducers: {
+    setProductId: (state, action: PayloadAction<number>) => {
+      state.productId = action.payload;
+    },
     changeProcessing: (
       state,
       action: PayloadAction<{ isProcessing: boolean }>,
@@ -44,6 +49,7 @@ export const configuratorSlice = createSlice({
 });
 
 export const {
+  setProductId,
   changeProcessing,
   setStageCamera,
   setAttributes,

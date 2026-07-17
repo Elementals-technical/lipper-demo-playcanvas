@@ -7,7 +7,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import type { ProductDataAttributes } from '../services/productAttributes';
-import { lippertProductService, PRODUCT_ID } from './productInstance';
+import { lippertProductService } from './productInstance';
 import { getLippertVariantMetadata } from './attributeMetadataMap';
 import { isBooleanAttr, setPlayCanvasAttribute } from './playcanvasBridge';
 
@@ -35,9 +35,10 @@ export interface MockAttribute {
 
 // ── Cache ──
 
-let productCache: Record<string, MockAttribute> | null = null;
-let initPromise: Promise<void> | null = null;
-let _initialized = false;
+const productCaches = new Map<number, Record<string, MockAttribute>>();
+const initPromises = new Map<number, Promise<Record<string, MockAttribute>>>();
+let activeProductId: number | null = null;
+let requestedProductId: number | null = null;
 
 // ── Build a single mock attribute ──
 
@@ -95,31 +96,36 @@ function buildMockAttribute(
 
 // ── Initialization ──
 
-export async function initProductAttributes(): Promise<void> {
-  if (_initialized) return;
-  if (initPromise) return initPromise;
+/** Loads and activates the attributes associated with the current product. */
+export async function initProductAttributes(productId: number): Promise<void> {
+  requestedProductId = productId;
 
-  initPromise = (async () => {
-    const apiAttrs = await lippertProductService.getAttributes(PRODUCT_ID);
+  let initPromise = initPromises.get(productId);
+  if (!initPromise) {
+    initPromise = (async () => {
+      const apiAttrs = await lippertProductService.getAttributes(productId);
 
-    const built: Record<string, MockAttribute> = {};
-    for (const [name, data] of Object.entries(apiAttrs)) {
-      built[name] = buildMockAttribute(name, data);
-    }
+      const built: Record<string, MockAttribute> = {};
+      for (const [name, data] of Object.entries(apiAttrs)) {
+        built[name] = buildMockAttribute(name, data);
+      }
 
-    productCache = built;
-    _initialized = true;
-  })();
+      productCaches.set(productId, built);
+      return built;
+    })();
+    initPromises.set(productId, initPromise);
+  }
 
-  return initPromise;
+  await initPromise;
+  if (requestedProductId === productId) activeProductId = productId;
 }
 
 export function isInitialized(): boolean {
-  return _initialized;
+  return activeProductId !== null;
 }
 
 export function getMockAttributes(): Record<string, MockAttribute> {
-  return productCache ?? {};
+  return activeProductId === null ? {} : productCaches.get(activeProductId) ?? {};
 }
 
 // ── useAttribute hook ──
@@ -128,20 +134,17 @@ export function useAttribute(
   attributeName: string,
 ): [MockAttribute | null, (newValue: string | boolean) => void] {
   const [attr, setAttr] = useState<MockAttribute | null>(
-    productCache?.[attributeName] ?? null,
+    getMockAttributes()[attributeName] ?? null,
   );
 
   useEffect(() => {
-    if (!_initialized) {
-      initProductAttributes().then(() => {
-        setAttr(productCache?.[attributeName] ?? null);
-      });
-    }
+    setAttr(getMockAttributes()[attributeName] ?? null);
   }, [attributeName]);
 
   const setAttribute = useCallback(
     (newValue: string | boolean) => {
-      if (!productCache?.[attributeName]) return;
+      const productCache = getMockAttributes();
+      if (!productCache[attributeName]) return;
 
       const mockAttr = productCache[attributeName];
 
