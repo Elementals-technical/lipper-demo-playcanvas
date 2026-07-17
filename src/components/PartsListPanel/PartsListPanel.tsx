@@ -1,6 +1,5 @@
-import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { useAttribute, lippertProductService, PRODUCT_ID } from '../../configurator';
+import { useState } from 'react';
+import { getMockAttributes, useAttribute } from '../../configurator';
 import { useConfiguratorAPI } from '../../hooks/useConfiguratorAPI';
 import s from './PartsListPanel.module.scss';
 import clsx from 'clsx';
@@ -93,34 +92,10 @@ const AnnotationsToggle = () => {
 };
 
 export const PartsListPanel = () => {
-  const { productId } = useParams<{ productId: string }>();
   const [isOpen, setIsOpen] = useState(true);
   const [isAnimating, setIsAnimating] = useState(false);
   const [showCollapsed, setShowCollapsed] = useState(false);
-  const [vividAttributeNames, setVividAttributeNames] = useState<Set<string>>(new Set());
-  const resolvedProductId = Number(productId || PRODUCT_ID);
-
-  useEffect(() => {
-    let cancelled = false;
-    const currentProductId = Number.isFinite(resolvedProductId)
-      ? resolvedProductId
-      : PRODUCT_ID;
-
-    lippertProductService
-      .getAttributes(currentProductId)
-      .then((attributes) => {
-        if (cancelled) return;
-        setVividAttributeNames(new Set(Object.keys(attributes)));
-      })
-      .catch(() => {
-        if (cancelled) return;
-        setVividAttributeNames(new Set());
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [resolvedProductId]);
+  const vividAttributeNames = new Set(Object.keys(getMockAttributes()));
 
   const visibleSubAssemblies = SUB_ASSEMBLIES.filter((name) =>
     vividAttributeNames.has(name),
