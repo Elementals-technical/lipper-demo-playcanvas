@@ -1,6 +1,6 @@
 import { useMemo, useEffect } from "react";
 import { usePartSelection } from "../../hooks/usePartSelection";
-import { useDatatableParts } from "../../hooks/useDatatableParts";
+import { useDataTablePart } from "../../hooks/useDataTablePart";
 import s from "./PartPopup.module.scss";
 
 interface RelatedProduct {
@@ -86,6 +86,7 @@ function useTooltipStyling() {
       if (os._options) {
         os._options.tooltipInteractive = true;
         os._options.renderTooltip = (data: any) => {
+          console.log("renderTooltip data: ---- ====", data);
           let html = `<strong style="font-size:15px;font-weight:600;color:#343A40;display:block;margin-bottom:6px;line-height:1.3;">`;
           html += `${data.partNumber ? data.partNumber + " " : ""}${data.displayName}`;
           html += `</strong>`;
@@ -120,25 +121,12 @@ function useTooltipStyling() {
 
 export const PartPopup = () => {
   const { selectedPart, deselect } = usePartSelection();
-  const { parts } = useDatatableParts();
+  const { part: datatablePart, relatedParts } = useDataTablePart(selectedPart?.partNumber);
 
   useTooltipStyling();
 
-  const part = useMemo(() => {
-    if (!selectedPart || !parts.length) return null;
-    const exact = parts.find((p) => p.groupName === selectedPart.groupName);
-    if (exact) return exact;
-    if (selectedPart.partNumber) {
-      return (
-        parts.find((p) => p.partNumber === selectedPart.partNumber && selectedPart.groupName.includes(p.side)) ?? null
-      );
-    }
-    return null;
-  }, [selectedPart, parts]);
-
   // Use enriched data from selectedPart (ConfiguratorAPI) merged with datatable
   const enriched = selectedPart;
-  const datatablePart = part;
 
   const relatedProducts = useMemo<RelatedProduct[]>(() => {
     if (!enriched) return [];
@@ -151,15 +139,14 @@ export const PartPopup = () => {
             name: related.groupName,
             link: related.storeLink as string,
           }))
-      : (datatablePart?.relatedProducts ?? [])
-          .map((partNumber) => parts.find((candidate) => candidate.partNumber === partNumber))
+      : relatedParts
           .filter((related) => related?.storeLink)
           .map((related) => ({
-            id: related!.id,
-            name: related!.displayName || related!.groupName,
-            link: related!.storeLink as string,
+            id: related.id,
+            name: related.displayName || related.groupName,
+            link: related.storeLink as string,
           }));
-  }, [datatablePart, enriched, parts]);
+  }, [enriched, relatedParts]);
 
   if (!enriched) return null;
 
@@ -262,7 +249,7 @@ export const PartPopup = () => {
         )}
 
         {/* Store Link */}
-        {storeLink && (
+        {storeLink && storeLink !== "N/A" && (
           <a href={storeLink} target="_blank" rel="noopener noreferrer" className={s.storeLink}>
             <span>{storeLinkText || "Store Link"}</span>
             <ArrowTopRightIcon />
