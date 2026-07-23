@@ -131,40 +131,49 @@ export const PartPopup = () => {
   const relatedProducts = useMemo<RelatedProduct[]>(() => {
     if (!enriched) return [];
 
-    return enriched.relationProducts?.length
-      ? enriched.relationProducts
-          .filter((related) => related.storeLink)
-          .map((related) => ({
-            id: related.partNumber,
-            name: related.groupName,
-            link: related.storeLink as string,
-          }))
-      : relatedParts
-          .filter((related) => related?.storeLink)
-          .map((related) => ({
-            id: related.id,
-            name: related.displayName || related.groupName,
-            link: related.storeLink as string,
-          }));
+    const datatableRelatedProducts = relatedParts
+      .filter((related) => related.storeLink)
+      .map((related) => ({
+        id: related.id,
+        name: related.displayName || related.groupName,
+        link: related.storeLink as string,
+      }));
+
+    if (datatableRelatedProducts.length) return datatableRelatedProducts;
+
+    return (enriched.relationProducts ?? [])
+      .filter((related) => related.storeLink)
+      .map((related) => ({
+        id: related.partNumber,
+        name: related.groupName,
+        link: related.storeLink as string,
+      }));
   }, [enriched, relatedParts]);
 
   if (!enriched) return null;
 
-  const displayTitle = [
-    datatablePart?.itemNumber || enriched.itemNumber,
-    datatablePart?.displayName || enriched.displayName,
-  ]
-    .filter(Boolean)
-    .join(" ");
-
-  const description = (enriched as any).description || datatablePart?.description;
-  const technicalNotes = (enriched as any).technicalNotes || datatablePart?.technicalNotes;
-  const specs = (enriched as any).specifications || datatablePart?.specifications;
-  const maintenance = (enriched as any).maintenance || datatablePart?.maintenance;
-  const storeLink = enriched.storeLink || datatablePart?.storeLink;
-  const storeLinkText = enriched.storeLinkText || datatablePart?.storeLinkText;
-  const category = (enriched as any).category || datatablePart?.category;
-  const sku = enriched.sku || enriched.partNumber || datatablePart?.partNumber;
+  const displayTitle = datatablePart?.displayName || enriched.displayName;
+  const description = datatablePart?.description || enriched.description;
+  const technicalNotes = datatablePart?.technicalNotes || enriched.technicalNotes;
+  const specs =
+    datatablePart && Object.keys(datatablePart.specifications).length
+      ? datatablePart.specifications
+      : enriched.specifications;
+  const maintenance =
+    datatablePart?.maintenance || enriched.maintenance
+      ? {
+          interval: datatablePart?.maintenance?.interval || enriched.maintenance?.maintenance_interval,
+          task: datatablePart?.maintenance?.task || enriched.maintenance?.maintenance_task,
+          commonIssues: datatablePart?.maintenance?.commonIssues || enriched.maintenance?.common_issues,
+        }
+      : null;
+  const hasDatatableStoreLink = datatablePart?.storeLink && datatablePart.storeLink !== "N/A";
+  const storeLink = hasDatatableStoreLink ? datatablePart.storeLink : enriched.storeLink;
+  const storeLinkText = hasDatatableStoreLink
+    ? datatablePart.storeLinkText || enriched.storeLinkText
+    : enriched.storeLinkText;
+  const category = datatablePart?.category || enriched.category;
+  const sku = datatablePart?.partNumber || enriched.sku || enriched.partNumber;
   const hasSpecs = specs && Object.keys(specs).length > 0;
 
   return (
@@ -214,19 +223,19 @@ export const PartPopup = () => {
         {maintenance && (
           <div className={s.maintenanceBlock}>
             <h3 className={s.sectionTitle}>Maintenance</h3>
-            {maintenance.maintenance_interval && (
+            {maintenance.interval && (
               <p className={s.maintenanceItem}>
-                <strong>Interval:</strong> {maintenance.maintenance_interval}
+                <strong>Interval:</strong> {maintenance.interval}
               </p>
             )}
-            {maintenance.maintenance_task && (
+            {maintenance.task && (
               <p className={s.maintenanceItem}>
-                <strong>Task:</strong> {maintenance.maintenance_task}
+                <strong>Task:</strong> {maintenance.task}
               </p>
             )}
-            {maintenance.common_issues && (
+            {maintenance.commonIssues && (
               <p className={s.maintenanceItem}>
-                <strong>Common issues:</strong> {maintenance.common_issues}
+                <strong>Common issues:</strong> {maintenance.commonIssues}
               </p>
             )}
           </div>
