@@ -133,7 +133,7 @@ export const PartPopup = () => {
     const datatableRelatedProducts = relatedParts
       .filter((related) => related.storeLink)
       .map((related) => ({
-        id: related.id,
+        id: related.partNumber,
         name: related.displayName || related.groupName,
         link: related.storeLink as string,
       }));
@@ -248,7 +248,7 @@ export const PartPopup = () => {
               {relatedProducts.map((related) => (
                 <li key={related.id} className={s.relatedItem}>
                   <a href={related.link} target="_blank" rel="noopener noreferrer">
-                    {related.name}
+                    {related.id} {related.name}
                   </a>
                 </li>
               ))}
