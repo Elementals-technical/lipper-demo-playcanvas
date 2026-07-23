@@ -1,6 +1,7 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef } from "react";
 
 export interface ConfiguratorState {
+  axleModel: string;
   explodeStatus: boolean;
   hubAssemblyVisible: boolean;
   spindleAssemblyVisible: boolean;
@@ -8,6 +9,7 @@ export interface ConfiguratorState {
   brakeAssemblyVisible: boolean;
   cameraPosition: string;
   annotationsVisible: boolean;
+  springAssemblyExplode?: boolean;
 }
 
 export interface ConfiguratorAPI {

@@ -4,7 +4,7 @@ import type {
   ProductData,
   AvailableOption,
   AvailableGeometryOption,
-} from './types';
+} from "./types";
 
 export class ProductAttributesService {
   private apiBaseUrl: string;
@@ -12,14 +12,11 @@ export class ProductAttributesService {
   private cache = new Map<number, Record<string, ProductDataAttributes>>();
 
   constructor(config: ProductAttributesConfig) {
-    this.apiBaseUrl = config.apiBaseUrl.replace(/\/$/, '');
+    this.apiBaseUrl = config.apiBaseUrl.replace(/\/$/, "");
     this.productId = config.productId;
   }
 
-  public async getAttributes(
-    productId?: number,
-    useCache = true,
-  ): Promise<Record<string, ProductDataAttributes>> {
+  public async getAttributes(productId?: number, useCache = true): Promise<Record<string, ProductDataAttributes>> {
     const id = productId ?? this.productId;
 
     if (useCache && this.cache.has(id)) {
@@ -27,30 +24,31 @@ export class ProductAttributesService {
     }
 
     const productData = await this.fetchProductData(id);
+    console.log("productData --- ====", productData);
     if (!productData) return {};
 
     const optionGroups = (productData.availableOptions || [])
       .filter((g) => g.enabled)
-      .map((g) => ({ group: g, type: 'option' as const }));
+      .map((g) => ({ group: g, type: "option" as const }));
     const geometryGroups = (productData.availableGeometryOptions || [])
       .filter((g) => g.enabled)
-      .map((g) => ({ group: g, type: 'geometry' as const }));
+      .map((g) => ({ group: g, type: "geometry" as const }));
 
-    const result = [...optionGroups, ...geometryGroups].reduce<
-      Record<string, ProductDataAttributes>
-    >((acc, { group, type }) => {
-      const transformed = this.transformOptions(group, type);
-      return { ...acc, ...transformed };
-    }, {});
+    const result = [...optionGroups, ...geometryGroups].reduce<Record<string, ProductDataAttributes>>(
+      (acc, { group, type }) => {
+        const transformed = this.transformOptions(group, type);
+        return { ...acc, ...transformed };
+      },
+      {}
+    );
 
     this.cache.set(id, result);
     return result;
   }
 
-  private async fetchProductData(
-    productId: number,
-  ): Promise<ProductData | null> {
+  private async fetchProductData(productId: number): Promise<ProductData | null> {
     try {
+      console.log("this.apiBaseUrl --- ==== ", this.apiBaseUrl);
       const res = await fetch(`${this.apiBaseUrl}/products/${productId}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       return await res.json();
@@ -62,7 +60,7 @@ export class ProductAttributesService {
 
   private transformOptions(
     data: AvailableOption | AvailableGeometryOption,
-    type: 'option' | 'geometry',
+    type: "option" | "geometry"
   ): Record<string, ProductDataAttributes> {
     const result: Record<string, ProductDataAttributes> = {};
 
