@@ -86,7 +86,6 @@ function useTooltipStyling() {
       if (os._options) {
         os._options.tooltipInteractive = true;
         os._options.renderTooltip = (data: any) => {
-          console.log("renderTooltip data: ---- ====", data);
           let html = `<strong style="font-size:15px;font-weight:600;color:#343A40;display:block;margin-bottom:6px;line-height:1.3;">`;
           html += `${data.partNumber ? data.partNumber + " " : ""}${data.displayName}`;
           html += `</strong>`;

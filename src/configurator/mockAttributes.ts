@@ -5,11 +5,11 @@
  * Manages product cache and provides useAttribute hook.
  */
 
-import { useState, useEffect, useCallback } from 'react';
-import type { ProductDataAttributes } from '../services/productAttributes';
-import { lippertProductService } from './productInstance';
-import { getLippertVariantMetadata } from './attributeMetadataMap';
-import { isBooleanAttr, setPlayCanvasAttribute } from './playcanvasBridge';
+import { useState, useEffect, useCallback } from "react";
+import type { ProductDataAttributes } from "../services/productAttributes";
+import { lippertProductService } from "./productInstance";
+import { getLippertVariantMetadata } from "./attributeMetadataMap";
+import { isBooleanAttr, setPlayCanvasAttribute } from "./playcanvasBridge";
 
 // ── Types ──
 
@@ -27,7 +27,7 @@ export interface MockVariant {
 }
 
 export interface MockAttribute {
-  type: 'Boolean' | 'Asset';
+  type: "Boolean" | "Asset";
   value: boolean | { assetId: string };
   defaultValue: boolean | { assetId: string };
   values: MockVariant[];
@@ -43,18 +43,15 @@ let requestedProductId: number | null = null;
 // ── Build a single mock attribute ──
 
 const DEFAULT_OVERRIDES: Record<string, string> = {
-  'Hub Assembly': 'true',
-  'Brake Assembly': 'true',
-  'Spring Assembly': 'true',
-  'Spindle Assembly': 'true',
-  Explode: 'false',
-  Annotations: 'false',
+  "Hub Assembly": "true",
+  "Brake Assembly": "true",
+  "Spring Assembly": "true",
+  "Spindle Assembly": "true",
+  Explode: "false",
+  Annotations: "false",
 };
 
-function buildMockAttribute(
-  attrName: string,
-  apiAttr: ProductDataAttributes,
-): MockAttribute {
+function buildMockAttribute(attrName: string, apiAttr: ProductDataAttributes): MockAttribute {
   const isBoolean = isBooleanAttr(attrName);
 
   const enabledVariants = apiAttr.values.filter((v) => v.enabled);
@@ -78,16 +75,12 @@ function buildMockAttribute(
 
   // Determine default selection
   const defaultName = DEFAULT_OVERRIDES[attrName];
-  const defaultEntry = defaultName
-    ? values.find((v) => v.label === defaultName) ?? values[0]
-    : values[0];
+  const defaultEntry = defaultName ? (values.find((v) => v.label === defaultName) ?? values[0]) : values[0];
 
-  const defaultVal = isBoolean
-    ? (defaultEntry?.value as boolean)
-    : { assetId: defaultEntry?.assetId ?? '' };
+  const defaultVal = isBoolean ? (defaultEntry?.value as boolean) : { assetId: defaultEntry?.assetId ?? "" };
 
   return {
-    type: isBoolean ? 'Boolean' : 'Asset',
+    type: isBoolean ? "Boolean" : "Asset",
     value: defaultVal,
     defaultValue: defaultVal,
     values,
@@ -104,6 +97,7 @@ export async function initProductAttributes(productId: number): Promise<void> {
   if (!initPromise) {
     initPromise = (async () => {
       const apiAttrs = await lippertProductService.getAttributes(productId);
+      console.log("apiAttrs --- ==== ", apiAttrs);
 
       const built: Record<string, MockAttribute> = {};
       for (const [name, data] of Object.entries(apiAttrs)) {
@@ -125,17 +119,15 @@ export function isInitialized(): boolean {
 }
 
 export function getMockAttributes(): Record<string, MockAttribute> {
-  return activeProductId === null ? {} : productCaches.get(activeProductId) ?? {};
+  console.log("activeProductId ---- ====", activeProductId);
+  console.log("productCaches ---- ====", productCaches);
+  return activeProductId === null ? {} : (productCaches.get(activeProductId) ?? {});
 }
 
 // ── useAttribute hook ──
 
-export function useAttribute(
-  attributeName: string,
-): [MockAttribute | null, (newValue: string | boolean) => void] {
-  const [attr, setAttr] = useState<MockAttribute | null>(
-    getMockAttributes()[attributeName] ?? null,
-  );
+export function useAttribute(attributeName: string): [MockAttribute | null, (newValue: string | boolean) => void] {
+  const [attr, setAttr] = useState<MockAttribute | null>(getMockAttributes()[attributeName] ?? null);
 
   useEffect(() => {
     setAttr(getMockAttributes()[attributeName] ?? null);
@@ -149,7 +141,7 @@ export function useAttribute(
       const mockAttr = productCache[attributeName];
 
       // Update mock cache
-      if (mockAttr.type === 'Boolean') {
+      if (mockAttr.type === "Boolean") {
         mockAttr.value = newValue as boolean;
       } else {
         mockAttr.value = { assetId: String(newValue) };
@@ -161,7 +153,7 @@ export function useAttribute(
       // Trigger re-render
       setAttr({ ...mockAttr });
     },
-    [attributeName],
+    [attributeName]
   );
 
   return [attr, setAttribute];
