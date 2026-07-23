@@ -1,17 +1,41 @@
-import { useMemo, useEffect } from 'react';
-import { usePartSelection } from '../../hooks/usePartSelection';
-import { useDatatableParts } from '../../hooks/useDatatableParts';
-import s from './PartPopup.module.scss';
+import { useMemo, useEffect } from "react";
+import { usePartSelection } from "../../hooks/usePartSelection";
+import { useDatatableParts } from "../../hooks/useDatatableParts";
+import s from "./PartPopup.module.scss";
+
+interface RelatedProduct {
+  id: string;
+  name: string;
+  link: string;
+}
 
 const ArrowTopRightIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
     <line x1="7" y1="17" x2="17" y2="7" />
     <polyline points="7 7 17 7 17 17" />
   </svg>
 );
 
 const CloseIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
     <line x1="18" y1="6" x2="6" y2="18" />
     <line x1="6" y1="6" x2="18" y2="18" />
   </svg>
@@ -46,15 +70,15 @@ function useTooltipStyling() {
       // 1. Override tooltip container styles
       if (os._popup) {
         Object.assign(os._popup.style, {
-          backgroundColor: '#FFFFFF',
-          color: '#343A40',
+          backgroundColor: "#FFFFFF",
+          color: "#343A40",
           fontFamily: '"Futura PT", "Roboto", sans-serif',
-          border: '1px solid #E3E5FA',
-          borderRadius: '12px',
-          padding: '16px 20px',
-          maxWidth: '320px',
-          boxShadow: '0 8px 24px rgba(0,0,0,0.1), 0 2px 8px rgba(0,0,0,0.05)',
-          pointerEvents: 'auto',
+          border: "1px solid #E3E5FA",
+          borderRadius: "12px",
+          padding: "16px 20px",
+          maxWidth: "320px",
+          boxShadow: "0 8px 24px rgba(0,0,0,0.1), 0 2px 8px rgba(0,0,0,0.05)",
+          pointerEvents: "auto",
         });
       }
 
@@ -63,7 +87,7 @@ function useTooltipStyling() {
         os._options.tooltipInteractive = true;
         os._options.renderTooltip = (data: any) => {
           let html = `<strong style="font-size:15px;font-weight:600;color:#343A40;display:block;margin-bottom:6px;line-height:1.3;">`;
-          html += `${data.partNumber ? data.partNumber + ' ' : ''}${data.displayName}`;
+          html += `${data.partNumber ? data.partNumber + " " : ""}${data.displayName}`;
           html += `</strong>`;
 
           if (data.description) {
@@ -106,11 +130,7 @@ export const PartPopup = () => {
     if (exact) return exact;
     if (selectedPart.partNumber) {
       return (
-        parts.find(
-          (p) =>
-            p.partNumber === selectedPart.partNumber &&
-            selectedPart.groupName.includes(p.side),
-        ) ?? null
+        parts.find((p) => p.partNumber === selectedPart.partNumber && selectedPart.groupName.includes(p.side)) ?? null
       );
     }
     return null;
@@ -120,6 +140,27 @@ export const PartPopup = () => {
   const enriched = selectedPart;
   const datatablePart = part;
 
+  const relatedProducts = useMemo<RelatedProduct[]>(() => {
+    if (!enriched) return [];
+
+    return enriched.relationProducts?.length
+      ? enriched.relationProducts
+          .filter((related) => related.storeLink)
+          .map((related) => ({
+            id: related.partNumber,
+            name: related.groupName,
+            link: related.storeLink as string,
+          }))
+      : (datatablePart?.relatedProducts ?? [])
+          .map((partNumber) => parts.find((candidate) => candidate.partNumber === partNumber))
+          .filter((related) => related?.storeLink)
+          .map((related) => ({
+            id: related!.id,
+            name: related!.displayName || related!.groupName,
+            link: related!.storeLink as string,
+          }));
+  }, [datatablePart, enriched, parts]);
+
   if (!enriched) return null;
 
   const displayTitle = [
@@ -127,7 +168,7 @@ export const PartPopup = () => {
     datatablePart?.displayName || enriched.displayName,
   ]
     .filter(Boolean)
-    .join(' ');
+    .join(" ");
 
   const description = (enriched as any).description || datatablePart?.description;
   const technicalNotes = (enriched as any).technicalNotes || datatablePart?.technicalNotes;
@@ -204,15 +245,26 @@ export const PartPopup = () => {
           </div>
         )}
 
+        {/* Related products */}
+        {relatedProducts.length > 0 && (
+          <div className={s.section}>
+            <h3 className={s.sectionTitle}>Related Products</h3>
+            <ul className={s.relatedList}>
+              {relatedProducts.map((related) => (
+                <li key={related.id} className={s.relatedItem}>
+                  <a href={related.link} target="_blank" rel="noopener noreferrer">
+                    {related.name}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         {/* Store Link */}
         {storeLink && (
-          <a
-            href={storeLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={s.storeLink}
-          >
-            <span>{storeLinkText || 'Store Link'}</span>
+          <a href={storeLink} target="_blank" rel="noopener noreferrer" className={s.storeLink}>
+            <span>{storeLinkText || "Store Link"}</span>
             <ArrowTopRightIcon />
           </a>
         )}

@@ -207,7 +207,9 @@
   font-size: 14px;
   line-height: 20px;
   align-self: flex-start;
-  transition: opacity 0.15s ease, transform 0.1s ease;
+  transition:
+    opacity 0.15s ease,
+    transform 0.1s ease;
 
   svg {
     color: var(--color-white);
@@ -219,6 +221,20 @@
 
   &:active {
     transform: scale(0.97);
+  }
+}
+
+.relatedList {
+  margin: 0;
+  padding: 0 16px;
+  .relatedItem {
+    a {
+      font-family: var(--font-primary);
+      font-weight: 400;
+      font-size: 14px;
+      line-height: 20px;
+      color: var(--color-content-light);
+    }
   }
 }
 

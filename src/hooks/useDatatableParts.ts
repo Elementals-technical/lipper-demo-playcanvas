@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
 export interface DatatablePart {
   id: string;
@@ -18,6 +18,7 @@ export interface DatatablePart {
     task: string;
     commonIssues: string;
   } | null;
+  relatedProducts: string[];
 }
 
 interface DatatableRow {
@@ -31,18 +32,18 @@ interface DatatableResponse {
   rows: DatatableRow[];
 }
 
-const DATATABLE_URL = 'https://renderadmin.vivid3d.tech/datatables/524';
+const DATATABLE_URL = "https://renderadmin.vivid3d.tech/datatables/524";
 
 const SPEC_FIELDS: { key: string; label: string }[] = [
-  { key: 'spec_material', label: 'Material' },
-  { key: 'spec_weight', label: 'Weight' },
-  { key: 'spec_torque', label: 'Torque' },
-  { key: 'spec_bearing_type', label: 'Bearing Type' },
-  { key: 'spec_brake_type', label: 'Brake Type' },
-  { key: 'spec_spring_type', label: 'Spring Type' },
-  { key: 'spec_load_capacity', label: 'Load Capacity' },
-  { key: 'spec_lining_life', label: 'Lining Life' },
-  { key: 'spec_durability', label: 'Durability' },
+  { key: "spec_material", label: "Material" },
+  { key: "spec_weight", label: "Weight" },
+  { key: "spec_torque", label: "Torque" },
+  { key: "spec_bearing_type", label: "Bearing Type" },
+  { key: "spec_brake_type", label: "Brake Type" },
+  { key: "spec_spring_type", label: "Spring Type" },
+  { key: "spec_load_capacity", label: "Load Capacity" },
+  { key: "spec_lining_life", label: "Lining Life" },
+  { key: "spec_durability", label: "Durability" },
 ];
 
 function parseSpecifications(row: DatatableRow): Record<string, string> {
@@ -54,9 +55,9 @@ function parseSpecifications(row: DatatableRow): Record<string, string> {
 }
 
 function parseMaintenance(row: DatatableRow) {
-  const interval = row.maint_interval || '';
-  const task = row.maint_task || '';
-  const commonIssues = row.maint_common_issues || '';
+  const interval = row.maint_interval || "";
+  const task = row.maint_task || "";
+  const commonIssues = row.maint_common_issues || "";
   if (!interval && !task && !commonIssues) return null;
   return { interval, task, commonIssues };
 }
@@ -67,19 +68,23 @@ function parseDatatableRows(data: DatatableResponse): DatatablePart[] {
   return data.rows
     .filter((row) => row.id)
     .map((row) => ({
-      id: row.id || '',
-      itemNumber: row.itemNumber || '',
-      partNumber: row.partNumber || '',
-      groupName: row.groupName || '',
-      displayName: row.displayName || '',
-      category: row.category || '',
-      side: row.side || '',
-      description: row.description || '',
-      technicalNotes: row.technical_notes || '',
+      id: row.id || "",
+      itemNumber: row.itemNumber || "",
+      partNumber: row.partNumber || "",
+      groupName: row.groupName || "",
+      displayName: row.displayName || "",
+      category: row.category || "",
+      side: row.side || "",
+      description: row.description || "",
+      technicalNotes: row.technical_notes || "",
       storeLink: row.store_link || null,
       storeLinkText: row.store_link_text || null,
       specifications: parseSpecifications(row),
       maintenance: parseMaintenance(row),
+      relatedProducts: (row.relatedProducts || "")
+        .split(",")
+        .map((partNumber) => partNumber.trim())
+        .filter(Boolean),
     }));
 }
 
@@ -124,12 +129,14 @@ export function useDatatableParts() {
       })
       .catch((err) => {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : 'Failed to load parts');
+          setError(err instanceof Error ? err.message : "Failed to load parts");
           setIsLoading(false);
         }
       });
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return { parts, isLoading, error };

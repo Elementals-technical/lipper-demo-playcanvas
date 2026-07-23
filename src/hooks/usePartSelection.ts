@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef } from "react";
 
 export interface PartData {
   groupName: string;
@@ -19,6 +19,11 @@ export interface PartData {
     maintenance_task: string;
     common_issues: string;
   } | null;
+  relationProducts?: Array<{
+    groupName: string;
+    partNumber: string;
+    storeLink: string | null;
+  }>;
 }
 
 const DRAG_THRESHOLD_PX = 5;
@@ -50,14 +55,14 @@ export function usePartSelection() {
       dragRef.current.isDown = false;
     };
 
-    window.addEventListener('pointerdown', onDown, true);
-    window.addEventListener('pointermove', onMove, true);
-    window.addEventListener('pointerup', onUp, true);
+    window.addEventListener("pointerdown", onDown, true);
+    window.addEventListener("pointermove", onMove, true);
+    window.addEventListener("pointerup", onUp, true);
 
     return () => {
-      window.removeEventListener('pointerdown', onDown, true);
-      window.removeEventListener('pointermove', onMove, true);
-      window.removeEventListener('pointerup', onUp, true);
+      window.removeEventListener("pointerdown", onDown, true);
+      window.removeEventListener("pointermove", onMove, true);
+      window.removeEventListener("pointerup", onUp, true);
     };
   }, []);
 
@@ -70,6 +75,7 @@ export function usePartSelection() {
       if (!api?.outline) return false;
 
       unsubSelect = api.outline.onSelect((data: PartData) => {
+        console.log("Part selected: ---- ====", data);
         if (dragRef.current.moved) return;
         setSelectedPart(data);
       });
