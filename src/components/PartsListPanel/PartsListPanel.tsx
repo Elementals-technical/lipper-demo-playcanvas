@@ -3,8 +3,17 @@ import { getMockAttributes, useAttribute } from "../../configurator";
 import { useConfiguratorAPI } from "../../hooks/useConfiguratorAPI";
 import s from "./PartsListPanel.module.scss";
 import clsx from "clsx";
+import { useAppSelector } from "../../store/store";
+import { getProductId } from "../../store/slices/configurator/selectors/selectors";
 
-const SUB_ASSEMBLIES = ["Hub Assembly", "Spindle Assembly", "Spring Assembly", "Brake Assembly"];
+const SUB_ASSEMBLIES = [
+  "Hub Assembly",
+  "Spindle Assembly",
+  "Spring Assembly",
+  "Brake Assembly",
+  "Stationary Part",
+  "Moving Part",
+];
 
 const CogIcon = () => (
   <svg
@@ -138,6 +147,7 @@ export const PartsListPanel = () => {
   const [isAnimating, setIsAnimating] = useState(false);
   const [showCollapsed, setShowCollapsed] = useState(false);
   const vividAttributeNames = new Set(Object.keys(getMockAttributes()));
+  const productId = useAppSelector(getProductId);
 
   const visibleSubAssemblies = SUB_ASSEMBLIES.filter((name) => vividAttributeNames.has(name));
 
@@ -184,7 +194,7 @@ export const PartsListPanel = () => {
       <div className={s.body}>
         {/* Parent assembly with explode */}
         <div className={s.parentRow}>
-          <span className={s.parentName}>Axle Assembly</span>
+          <span className={s.parentName}>{productId === 3264 ? "Hub Assembly" : "Axle Assembly"}</span>
           <ExplodeToggle />
         </div>
 
