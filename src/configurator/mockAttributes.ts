@@ -47,6 +47,8 @@ const DEFAULT_OVERRIDES: Record<string, string> = {
   "Brake Assembly": "true",
   "Spring Assembly": "true",
   "Spindle Assembly": "true",
+  "Stationary Part": "true",
+  "Moving Part": "true",
   Explode: "false",
   Annotations: "false",
 };
