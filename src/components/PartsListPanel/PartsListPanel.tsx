@@ -194,7 +194,7 @@ export const PartsListPanel = () => {
       <div className={s.body}>
         {/* Parent assembly with explode */}
         <div className={s.parentRow}>
-          <span className={s.parentName}>{productId === 3264 ? "Hub Assembly" : "Axle Assembly"}</span>
+          <span className={s.parentName}>{"Hub Assembly" }</span>
           <ExplodeToggle />
         </div>
 
