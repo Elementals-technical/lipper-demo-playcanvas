@@ -3,8 +3,6 @@ import { getMockAttributes, useAttribute } from "../../configurator";
 import { useConfiguratorAPI } from "../../hooks/useConfiguratorAPI";
 import s from "./PartsListPanel.module.scss";
 import clsx from "clsx";
-import { useAppSelector } from "../../store/store";
-import { getProductId } from "../../store/slices/configurator/selectors/selectors";
 
 const SUB_ASSEMBLIES = [
   "Hub Assembly",
@@ -111,16 +109,16 @@ const ExplodeToggle = () => {
   );
 };
 
-const SpringAssemblyExplode = () => {
-  const { state, setConfig } = useConfiguratorAPI();
-  const isOn = state?.springAssemblyExplode ?? false;
+const AssemblyExplodeToggle = ({ attributeName }: { attributeName: string }) => {
+  const [attribute, setAttribute] = useAttribute(attributeName);
+  const isOn = attribute?.value === true;
 
   return (
     <div className={s.actionToggle}>
       <span className={s.actionLabel}>Explode</span>
       <button
         className={clsx(s.toggle, isOn && s.toggleOn)}
-        onClick={() => setConfig({ springAssemblyExplode: !isOn })}
+        onClick={() => setAttribute(!isOn)}
       >
         <span className={s.toggleThumb} />
       </button>
@@ -147,7 +145,6 @@ export const PartsListPanel = () => {
   const [isAnimating, setIsAnimating] = useState(false);
   const [showCollapsed, setShowCollapsed] = useState(false);
   const vividAttributeNames = new Set(Object.keys(getMockAttributes()));
-  const productId = useAppSelector(getProductId);
 
   const visibleSubAssemblies = SUB_ASSEMBLIES.filter((name) => vividAttributeNames.has(name));
 
@@ -201,7 +198,14 @@ export const PartsListPanel = () => {
         {vividAttributeNames.has("Spring Assembly Explode") && (
           <div className={s.parentRow}>
             <span className={s.parentName}>Spring Assembly</span>
-            <SpringAssemblyExplode />
+            <AssemblyExplodeToggle attributeName="Spring Assembly Explode" />
+          </div>
+        )}
+
+        {vividAttributeNames.has("Brake Assembly Explode") && (
+          <div className={s.parentRow}>
+            <span className={s.parentName}>Brake Assembly</span>
+            <AssemblyExplodeToggle attributeName="Brake Assembly Explode" />
           </div>
         )}
 

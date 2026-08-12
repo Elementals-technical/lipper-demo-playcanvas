@@ -10,6 +10,7 @@ export interface ConfiguratorState {
   cameraPosition: string;
   annotationsVisible: boolean;
   springAssemblyExplode?: boolean;
+  brakeAssemblyExplode?: boolean;
 }
 
 export interface ConfiguratorAPI {

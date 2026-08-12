@@ -42,6 +42,12 @@ const EXPLODE: Record<string, LippertVariantMetadata> = {
   false: { assetId: "explode-off", pcOption: false, pcAsset: null },
 };
 
+// ── Assembly Explode (toggle) ──
+const ASSEMBLY_EXPLODE: Record<string, LippertVariantMetadata> = {
+  true: { assetId: "assembly-explode-on", pcOption: true, pcAsset: null },
+  false: { assetId: "assembly-explode-off", pcOption: false, pcAsset: null },
+};
+
 // ── Annotations (toggle) ──
 const ANNOTATIONS: Record<string, LippertVariantMetadata> = {
   true: { assetId: "annotations-on", pcOption: true, pcAsset: null },
@@ -57,6 +63,8 @@ export const LIPPERT_ATTRIBUTE_METADATA: Record<string, Record<string, LippertVa
   "Stationary Part": STATIONARY_PART,
   "Moving Part": MOVING_PART,
   Explode: EXPLODE,
+  "Spring Assembly Explode": ASSEMBLY_EXPLODE,
+  "Brake Assembly Explode": ASSEMBLY_EXPLODE,
   Annotations: ANNOTATIONS,
 };
 

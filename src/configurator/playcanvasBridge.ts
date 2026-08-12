@@ -14,6 +14,8 @@ export const ATTR_TO_PC_KEY: Record<string, string> = {
   "Stationary Part": "stationaryPartVisible",
   "Moving Part": "movingPartVisible",
   Explode: "explodeStatus",
+  "Spring Assembly Explode": "springAssemblyExplode",
+  "Brake Assembly Explode": "brakeAssemblyExplode",
   Annotations: "annotationsVisible",
 };
 
@@ -31,6 +33,8 @@ const BOOLEAN_ATTRS = new Set([
   "Stationary Part",
   "Moving Part",
   "Explode",
+  "Spring Assembly Explode",
+  "Brake Assembly Explode",
   "Annotations",
 ]);
 
