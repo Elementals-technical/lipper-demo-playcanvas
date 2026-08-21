@@ -41,6 +41,21 @@ const CloseIcon = () => (
   </svg>
 );
 
+const formatPartTitle = (partNumber?: string | null, displayName?: string | null, groupName?: string | null) => {
+  const sku = String(partNumber || "").trim();
+  const title = String(displayName || groupName || "").trim();
+
+  if (!sku) return title;
+  if (!title) return sku;
+
+  const lowerTitle = title.toLowerCase();
+  const lowerSku = sku.toLowerCase();
+  const titleAlreadyStartsWithSku =
+    lowerTitle === lowerSku || lowerTitle.startsWith(`${lowerSku} `) || lowerTitle.startsWith(`${lowerSku} -`);
+
+  return titleAlreadyStartsWithSku ? title : `${sku} ${title}`;
+};
+
 /**
  * Override the built-in PlayCanvas hover tooltip with our design.
  * Finds OutlineService via PlayCanvas script instances and applies
@@ -87,7 +102,7 @@ function useTooltipStyling() {
         os._options.tooltipInteractive = true;
         os._options.renderTooltip = (data: any) => {
           let html = `<strong style="font-size:15px;font-weight:600;color:#343A40;display:block;margin-bottom:6px;line-height:1.3;">`;
-          html += `${data.partNumber ? data.partNumber + " " : ""}${data.displayName}`;
+          html += formatPartTitle(data.partNumber, data.displayName, data.groupName);
           html += `</strong>`;
 
           if (data.description) {
