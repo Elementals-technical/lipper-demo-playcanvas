@@ -4,6 +4,7 @@ import { PartsListPanel } from "../../components/PartsListPanel/PartsListPanel";
 import { CameraController } from "../../components/CameraController/CameraController";
 import { PartPopup } from "../../components/PartPopup/PartPopup";
 import { PlayerWidgetBottomCenter } from "../../components/PlayerWidgets/PlayerWidgetBottomCenter/PlayerWidgetBottomCenter";
+import { ProductHeader } from "../../components/ProductHeader/ProductHeader";
 
 export const ConfiguratorPage = () => {
   return (
@@ -12,7 +13,7 @@ export const ConfiguratorPage = () => {
       <PartsListPanel />
       <CameraController />
       <PartPopup />
-      <PlayerWidgetBottomCenter />
+      <ProductHeader />
     </div>
   );
 };

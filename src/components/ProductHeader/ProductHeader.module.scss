@@ -1,0 +1,27 @@
+.productHeader {
+  position: absolute;
+  z-index: 1000;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: auto;
+  @media (max-width: 768px) {
+    bottom: 200px;
+  }
+}
+
+.productTitle {
+  margin: 0;
+  padding: 0;
+
+  color: var(--content-main-color, #343a40);
+  font-family: var(--font-primary);
+  font-size: 24px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 32px; /* 133.333% */
+  @media (max-width: 768px) {
+    font-size: 18px;
+    line-height: 24px;
+  }
+}
