@@ -1,42 +1,37 @@
 .playerWidgetBottomCenter {
-  position: absolute;
-  z-index: 12;
-  left: 50%;
-  bottom: 24px;
-  transform: translateX(-50%);
-
-  // CameraController occupies bottom-center on mobile — lift AR button above it
-  @media (max-width: 768px) {
-    bottom: 200px;
-  }
+  position: relative;
+  width: 100%;
 }
 
 .arBtn {
-  display: inline-flex;
+  width: 100%;
+  display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 24px;
-  border-radius: 999px;
-  border: 1px solid #2c2c2c;
-  background: #fff;
-  color: #2c2c2c;
-  font-size: 15px;
-  font-weight: 600;
+  justify-content: center;
+  gap: 4px;
+  height: 48px;
+  padding: 12px 32px;
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: 50px;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  font-family: var(--font-primary);
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--color-content-main);
+  white-space: nowrap;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    transform 0.1s ease;
 
-  &:hover:not(:disabled) {
-    background: #2c2c2c;
-    color: #fff;
+  &:hover {
+    background: #f0f1f8;
   }
 
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-
-  @media (max-width: 768px) {
-    padding: 10px 20px;
-    font-size: 14px;
+  &:active {
+    transform: scale(0.96);
   }
 }

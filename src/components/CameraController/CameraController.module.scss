@@ -50,7 +50,11 @@
   line-height: 20px;
   color: var(--color-content-main);
   white-space: nowrap;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    transform 0.1s ease;
 
   &:hover {
     background: #f0f1f8;
@@ -77,7 +81,11 @@
   border: 1px solid var(--color-border);
   border-radius: 50px;
   cursor: pointer;
-  transition: background 0.15s ease, transform 0.1s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  transition:
+    background 0.15s ease,
+    transform 0.1s ease,
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
 
   &:hover {
     background: #f0f1f8;
@@ -107,9 +115,28 @@
   animation: resetSpin 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+.footer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  @media (max-width: 768px) {
+    flex-direction: row;
+
+    // Reset і View in AR діляться порівну по горизонталі
+    > * {
+      flex: 1 1 0;
+      min-width: 0;
+    }
+  }
+}
+
 @keyframes resetSpin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(-360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(-360deg);
+  }
 }
 
 @keyframes resetPulse {
