@@ -171,24 +171,26 @@ export const PartPopup = () => {
   const parentAssemblies = useMemo<RelatedProduct[]>(() => {
     if (!enriched) return [];
 
-    const datatableParentAssemblies = parentAssemblyParts
-      .filter((parent) => parent.storeLink)
-      .map((parent) => ({
-        id: parent.partNumber,
-        name: parent.displayName || parent.groupName,
-        link: parent.storeLink as string,
-      }));
+    const playcanvasParents = enriched.parentAssemblies ?? [];
+    const parentNumbers = datatablePart?.parentAssemblies.length
+      ? datatablePart.parentAssemblies
+      : playcanvasParents.map((parent) => parent.partNumber);
 
-    if (datatableParentAssemblies.length) return datatableParentAssemblies;
+    // Resolve each reference independently so missing table rows can use PlayCanvas data.
+    return parentNumbers
+      .map((partNumber) => {
+        const datatableParent = parentAssemblyParts.find((parent) => parent.partNumber === partNumber);
+        const parent = datatableParent ?? playcanvasParents.find((parent) => parent.partNumber === partNumber);
+        if (!parent) return null;
 
-    return (enriched.parentAssemblies ?? [])
-      .filter((parent) => parent.storeLink)
-      .map((parent) => ({
-        id: parent.partNumber,
-        name: parent.groupName,
-        link: parent.storeLink as string,
-      }));
-  }, [enriched, parentAssemblyParts]);
+        return {
+          id: parent.partNumber,
+          name: datatableParent?.displayName || parent.groupName,
+          link: parent.storeLink || "",
+        };
+      })
+      .filter((parent) => parent !== null);
+  }, [enriched, datatablePart, parentAssemblyParts]);
 
   if (!enriched) return null;
 
@@ -207,11 +209,9 @@ export const PartPopup = () => {
           commonIssues: datatablePart?.maintenance?.commonIssues || enriched.maintenance?.common_issues,
         }
       : null;
-  const hasDatatableStoreLink = datatablePart?.storeLink && datatablePart.storeLink !== "N/A";
-  const storeLink = hasDatatableStoreLink ? datatablePart.storeLink : enriched.storeLink;
-  const storeLinkText = hasDatatableStoreLink
-    ? datatablePart.storeLinkText || enriched.storeLinkText
-    : enriched.storeLinkText;
+  const storeLink = (datatablePart ? datatablePart.storeLink : enriched.storeLink)?.trim() || "";
+  const hasStoreLink = Boolean(storeLink) && !["NLA", "N/A"].includes(storeLink.toUpperCase());
+  const storeLinkText = datatablePart?.storeLinkText || enriched.storeLinkText;
   const category = datatablePart?.category || enriched.category;
   const sku = datatablePart?.partNumber || enriched.sku || enriched.partNumber;
   const hasSpecs = specs && Object.keys(specs).length > 0;
@@ -288,9 +288,13 @@ export const PartPopup = () => {
             <ul className={s.relatedList}>
               {parentAssemblies.map((parent) => (
                 <li key={parent.id} className={s.relatedItem}>
-                  <a href={parent.link} target="_blank" rel="noopener noreferrer">
-                    {parent.id} {parent.name}
-                  </a>
+                  {parent.link ? (
+                    <a href={parent.link} target="_blank" rel="noopener noreferrer">
+                      {formatPartTitle(parent.id, parent.name)}
+                    </a>
+                  ) : (
+                    <span>{formatPartTitle(parent.id, parent.name)}</span>
+                  )}
                 </li>
               ))}
             </ul>
@@ -314,11 +318,15 @@ export const PartPopup = () => {
         )}
 
         {/* Store Link */}
-        {storeLink && storeLink !== "N/A" && (
+        {hasStoreLink ? (
           <a href={storeLink} target="_blank" rel="noopener noreferrer" className={s.storeLink}>
             <span>{storeLinkText || "Store Link"}</span>
             <ArrowTopRightIcon />
           </a>
+        ) : (
+          <button type="button" className={s.storeLink} disabled>
+            <span>{storeLinkText || "Store Link"}</span>
+          </button>
         )}
       </div>
     </div>
