@@ -135,7 +135,10 @@ function useTooltipStyling() {
 
 export const PartPopup = () => {
   const { selectedPart, deselect } = usePartSelection();
-  const { part: datatablePart, relatedParts } = useDataTablePart(selectedPart?.partNumber);
+  const { part: datatablePart, relatedParts, parentAssemblyParts } = useDataTablePart(selectedPart?.partNumber);
+  console.log("selectedPart --- ==== ", selectedPart);
+  console.log("datatablePart --- ==== ", datatablePart);
+  console.log("relatedParts --- ==== ", relatedParts);
 
   useTooltipStyling();
 
@@ -163,6 +166,29 @@ export const PartPopup = () => {
         link: related.storeLink as string,
       }));
   }, [enriched, relatedParts]);
+  console.log("relatedProducts --- ==== ", relatedProducts);
+
+  const parentAssemblies = useMemo<RelatedProduct[]>(() => {
+    if (!enriched) return [];
+
+    const datatableParentAssemblies = parentAssemblyParts
+      .filter((parent) => parent.storeLink)
+      .map((parent) => ({
+        id: parent.partNumber,
+        name: parent.displayName || parent.groupName,
+        link: parent.storeLink as string,
+      }));
+
+    if (datatableParentAssemblies.length) return datatableParentAssemblies;
+
+    return (enriched.parentAssemblies ?? [])
+      .filter((parent) => parent.storeLink)
+      .map((parent) => ({
+        id: parent.partNumber,
+        name: parent.groupName,
+        link: parent.storeLink as string,
+      }));
+  }, [enriched, parentAssemblyParts]);
 
   if (!enriched) return null;
 
@@ -252,6 +278,22 @@ export const PartPopup = () => {
                 <strong>Common issues:</strong> {maintenance.commonIssues}
               </p>
             )}
+          </div>
+        )}
+
+        {/* Parent assemblies */}
+        {parentAssemblies.length > 0 && (
+          <div className={s.section}>
+            <h3 className={s.sectionTitle}>Parent Assemblies</h3>
+            <ul className={s.relatedList}>
+              {parentAssemblies.map((parent) => (
+                <li key={parent.id} className={s.relatedItem}>
+                  <a href={parent.link} target="_blank" rel="noopener noreferrer">
+                    {parent.id} {parent.name}
+                  </a>
+                </li>
+              ))}
+            </ul>
           </div>
         )}
 

@@ -24,6 +24,12 @@ export interface PartData {
     partNumber: string;
     storeLink: string | null;
   }>;
+  /** Parent assemblies supplied by the outline onSelect event. */
+  parentAssemblies?: Array<{
+    groupName: string;
+    partNumber: string;
+    storeLink: string | null;
+  }>;
 }
 
 const DRAG_THRESHOLD_PX = 5;
