@@ -31,5 +31,13 @@ export const useDataTablePart = (partNumber: string | null | undefined) => {
     [part, parts]
   );
 
-  return { part, relatedParts, parentAssemblyParts, isLoading, error };
+  const componentParts = useMemo(
+    () =>
+      (part?.components ?? [])
+        .map((componentPartNumber) => parts.find((candidate) => candidate.partNumber === componentPartNumber))
+        .filter((candidate) => candidate !== undefined),
+    [part, parts]
+  );
+
+  return { part, relatedParts, parentAssemblyParts, componentParts, isLoading, error };
 };
