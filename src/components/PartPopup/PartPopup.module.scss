@@ -222,13 +222,21 @@
   &:active {
     transform: scale(0.97);
   }
+
+  &:disabled {
+    border: none;
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
 }
 
 .relatedList {
   margin: 0;
   padding: 0 16px;
   .relatedItem {
-    a {
+    a,
+    span {
       font-family: var(--font-primary);
       font-weight: 400;
       font-size: 14px;
