@@ -12,15 +12,19 @@
 
 .productTitle {
   margin: 0;
-  padding: 0;
+  padding: 12px 20px;
 
-  color: var(--content-main-color, #343a40);
+  border-radius: 10px;
+  background: #fff;
+
+  color: #343a40;
   font-family: var(--font-primary);
   font-size: 24px;
   font-style: normal;
   font-weight: 500;
   line-height: 32px; /* 133.333% */
   @media (max-width: 768px) {
+    padding: 8px 16px;
     font-size: 18px;
     line-height: 24px;
   }
