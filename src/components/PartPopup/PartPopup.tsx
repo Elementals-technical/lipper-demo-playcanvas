@@ -135,7 +135,9 @@ function useTooltipStyling() {
 
 export const PartPopup = () => {
   const { selectedPart, deselect } = usePartSelection();
-  const { part: datatablePart, relatedParts, parentAssemblyParts } = useDataTablePart(selectedPart?.partNumber);
+  const { part: datatablePart, relatedParts, parentAssemblyParts, componentParts } = useDataTablePart(
+    selectedPart?.partNumber
+  );
   console.log("selectedPart --- ==== ", selectedPart);
   console.log("datatablePart --- ==== ", datatablePart);
   console.log("relatedParts --- ==== ", relatedParts);
@@ -191,6 +193,32 @@ export const PartPopup = () => {
       })
       .filter((parent) => parent !== null);
   }, [enriched, datatablePart, parentAssemblyParts]);
+
+  const components = useMemo<RelatedProduct[]>(() => {
+    if (!enriched) return [];
+
+    const playcanvasComponents = enriched.components ?? [];
+    const componentNumbers = datatablePart?.components.length
+      ? datatablePart.components
+      : playcanvasComponents.map((component) => component.partNumber);
+
+    // Resolve each reference independently so missing table rows can use PlayCanvas data.
+    return componentNumbers
+      .map((partNumber) => {
+        const datatableComponent = componentParts.find((component) => component.partNumber === partNumber);
+        const component =
+          datatableComponent ?? playcanvasComponents.find((component) => component.partNumber === partNumber);
+        if (!component) return null;
+
+        const link = component.storeLink?.trim() || "";
+        return {
+          id: component.partNumber,
+          name: datatableComponent?.displayName || component.groupName,
+          link: ["NLA", "N/A"].includes(link.toUpperCase()) ? "" : link,
+        };
+      })
+      .filter((component) => component !== null);
+  }, [enriched, datatablePart, componentParts]);
 
   if (!enriched) return null;
 
@@ -294,6 +322,26 @@ export const PartPopup = () => {
                     </a>
                   ) : (
                     <span>{formatPartTitle(parent.id, parent.name)}</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Components */}
+        {components.length > 0 && (
+          <div className={s.section}>
+            <h3 className={s.sectionTitle}>Components</h3>
+            <ul className={s.relatedList}>
+              {components.map((component) => (
+                <li key={component.id} className={s.relatedItem}>
+                  {component.link ? (
+                    <a href={component.link} target="_blank" rel="noopener noreferrer">
+                      {formatPartTitle(component.id, component.name)}
+                    </a>
+                  ) : (
+                    <span>{formatPartTitle(component.id, component.name)}</span>
                   )}
                 </li>
               ))}

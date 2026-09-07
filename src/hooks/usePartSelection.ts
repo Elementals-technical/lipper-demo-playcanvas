@@ -30,6 +30,12 @@ export interface PartData {
     partNumber: string;
     storeLink: string | null;
   }>;
+  /** Components supplied by the outline onSelect event. */
+  components?: Array<{
+    groupName: string;
+    partNumber: string;
+    storeLink: string | null;
+  }>;
 }
 
 const DRAG_THRESHOLD_PX = 5;
