@@ -19,6 +19,7 @@ export interface DatatablePart {
     commonIssues: string;
   } | null;
   relatedProducts: string[];
+  parentAssemblies: string[];
 }
 
 interface DatatableRow {
@@ -82,6 +83,10 @@ function parseDatatableRows(data: DatatableResponse): DatatablePart[] {
       specifications: parseSpecifications(row),
       maintenance: parseMaintenance(row),
       relatedProducts: (row.relatedProducts || "")
+        .split(",")
+        .map((partNumber) => partNumber.trim())
+        .filter(Boolean),
+      parentAssemblies: (row.parentAssemblies || "")
         .split(",")
         .map((partNumber) => partNumber.trim())
         .filter(Boolean),
