@@ -244,6 +244,7 @@ src/components/PartPopup/PartPopup.tsx
 id
 itemNumber
 side
+productVariantId
 partNumber
 displayName
 groupName
@@ -268,11 +269,11 @@ maint_common_issues
 
 Матчинг popup:
 
-1. Спочатку точний матч `datatable.groupName === selectedPart.groupName`.
-2. Якщо його немає, fallback по `partNumber` і `side`.
+1. `useDataTablePart` шукає рядок за `selectedPart.partNumber` і `productVariantId`, що відповідає ID продукту з маршруту (для `/` — `2669`).
+2. Якщо такого рядка немає, бере перший рядок із відповідним `partNumber`, незалежно від `productVariantId`.
 
-Тому `groupName` у dataTable має точно відповідати `groupName`, який приходить
-з PlayCanvas outline data.
+Таблиця може містити кілька рядків з однаковим `partNumber`. Поля деталі, зокрема
+`parentAssemblies`, беруться з обраного рядка.
 
 ## Parts List
 
@@ -552,8 +553,8 @@ npm run build
 ### Popup не має текстів
 
 - Перевірити dataTable `524`.
-- Перевірити точний `groupName`.
-- Перевірити `partNumber` і `side` fallback.
+- Перевірити `partNumber` і відповідність `productVariantId` поточному продукту.
+- Якщо відповідного `productVariantId` немає, перевірити перший рядок із цим `partNumber`.
 - Перевірити, чи `useDatatableParts()` успішно завантажив rows.
 
 ### AR не працює

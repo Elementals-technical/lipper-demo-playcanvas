@@ -185,10 +185,11 @@ export const PartPopup = () => {
         const parent = datatableParent ?? playcanvasParents.find((parent) => parent.partNumber === partNumber);
         if (!parent) return null;
 
+        const link = parent.storeLink?.trim() || "";
         return {
           id: parent.partNumber,
           name: datatableParent?.displayName || parent.groupName,
-          link: parent.storeLink || "",
+          link: ["NLA", "N/A"].includes(link.toUpperCase()) ? "" : link,
         };
       })
       .filter((parent) => parent !== null);

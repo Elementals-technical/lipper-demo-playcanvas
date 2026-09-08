@@ -1,19 +1,29 @@
 import { useMemo } from "react";
+import { useAppSelector } from "../store/store";
+import { getProductId } from "../store/slices/configurator/selectors/selectors";
 import { useDatatableParts } from "./useDatatableParts";
 
 /**
- * Loads a datatable part matching the selected PlayCanvas part.
+ * Loads the selected PlayCanvas part, preferring a row for the current route product.
+ * Falls back to the first matching part number when no product-specific row exists.
  *
  * @param partNumber Part number reported by PlayCanvas.
  */
 export const useDataTablePart = (partNumber: string | null | undefined) => {
+  const productId = useAppSelector(getProductId);
   const { parts, isLoading, error } = useDatatableParts();
 
   const part = useMemo(() => {
     if (!partNumber) return null;
 
-    return parts.find((candidate) => candidate.partNumber === partNumber) ?? null;
-  }, [partNumber, parts]);
+    return (
+      parts.find(
+        (candidate) => candidate.partNumber === partNumber && candidate.productVariantId === String(productId)
+      ) ??
+      parts.find((candidate) => candidate.partNumber === partNumber) ??
+      null
+    );
+  }, [partNumber, parts, productId]);
 
   const relatedParts = useMemo(
     () =>
