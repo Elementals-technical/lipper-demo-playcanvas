@@ -239,8 +239,13 @@ export const PartPopup = () => {
         }
       : null;
   const storeLink = (datatablePart ? datatablePart.storeLink : enriched.storeLink)?.trim() || "";
-  const hasStoreLink = Boolean(storeLink) && !["NLA", "N/A"].includes(storeLink.toUpperCase());
-  const storeLinkText = datatablePart?.storeLinkText || enriched.storeLinkText;
+  const contactCustomerServiceText = "Contact Customer Service for availability";
+  const requiresCustomerService = storeLink.toLowerCase() === contactCustomerServiceText.toLowerCase();
+  const hasStoreLink =
+    Boolean(storeLink) && !["NLA", "N/A"].includes(storeLink.toUpperCase()) && !requiresCustomerService;
+  const storeLinkText = requiresCustomerService
+    ? contactCustomerServiceText
+    : datatablePart?.storeLinkText || enriched.storeLinkText;
   const category = datatablePart?.category || enriched.category;
   const sku = datatablePart?.partNumber || enriched.sku || enriched.partNumber;
   const hasSpecs = specs && Object.keys(specs).length > 0;
