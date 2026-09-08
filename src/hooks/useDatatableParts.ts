@@ -4,6 +4,7 @@ export interface DatatablePart {
   id: string;
   itemNumber: string;
   partNumber: string;
+  productVariantId: string;
   groupName: string;
   displayName: string;
   category: string;
@@ -73,6 +74,7 @@ function parseDatatableRows(data: DatatableResponse): DatatablePart[] {
       id: row.id || "",
       itemNumber: row.itemNumber || "",
       partNumber: row.partNumber || "",
+      productVariantId: String(row.productVariantId || "").trim(),
       groupName: row.groupName || "",
       displayName: row.displayName || "",
       category: row.category || "",
