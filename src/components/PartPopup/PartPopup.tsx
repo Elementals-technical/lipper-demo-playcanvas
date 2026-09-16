@@ -1,6 +1,9 @@
 import { useMemo, useEffect } from "react";
 import { usePartSelection } from "../../hooks/usePartSelection";
-import { useDataTablePart } from "../../hooks/useDataTablePart";
+import { findDatatablePart, useDataTablePart } from "../../hooks/useDataTablePart";
+import { useDatatableParts } from "../../hooks/useDatatableParts";
+import { useAppSelector } from "../../store/store";
+import { getProductId } from "../../store/slices/configurator/selectors/selectors";
 import s from "./PartPopup.module.scss";
 
 interface RelatedProduct {
@@ -59,9 +62,12 @@ const formatPartTitle = (partNumber?: string | null, displayName?: string | null
 /**
  * Override the built-in PlayCanvas hover tooltip with our design.
  * Finds OutlineService via PlayCanvas script instances and applies
- * custom styles + renderTooltip function.
+ * custom styles + renderTooltip function, preferring datatable titles for the current product.
  */
 function useTooltipStyling() {
+  const { parts } = useDatatableParts();
+  const productId = useAppSelector(getProductId);
+
   useEffect(() => {
     const apply = () => {
       const api = (window as any).ConfiguratorAPI;
@@ -101,8 +107,11 @@ function useTooltipStyling() {
       if (os._options) {
         os._options.tooltipInteractive = true;
         os._options.renderTooltip = (data: any) => {
+          const datatablePart = findDatatablePart(parts, data.partNumber, productId);
+          const sku = datatablePart?.partNumber || data.sku || data.partNumber;
+          const displayTitle = datatablePart?.displayName || data.displayName;
           let html = `<strong style="font-size:15px;font-weight:600;color:#343A40;display:block;margin-bottom:6px;line-height:1.3;">`;
-          html += formatPartTitle(data.partNumber, data.displayName, data.groupName);
+          html += formatPartTitle(sku, displayTitle, data.groupName);
           html += `</strong>`;
 
           if (data.description) {
@@ -130,17 +139,17 @@ function useTooltipStyling() {
       if (apply()) clearInterval(interval);
     }, 500);
     return () => clearInterval(interval);
-  }, []);
+  }, [parts, productId]);
 }
 
 export const PartPopup = () => {
   const { selectedPart, deselect } = usePartSelection();
-  const { part: datatablePart, relatedParts, parentAssemblyParts, componentParts } = useDataTablePart(
-    selectedPart?.partNumber
-  );
-  console.log("selectedPart --- ==== ", selectedPart);
-  console.log("datatablePart --- ==== ", datatablePart);
-  console.log("relatedParts --- ==== ", relatedParts);
+  const {
+    part: datatablePart,
+    relatedParts,
+    parentAssemblyParts,
+    componentParts,
+  } = useDataTablePart(selectedPart?.partNumber);
 
   useTooltipStyling();
 
@@ -168,7 +177,6 @@ export const PartPopup = () => {
         link: related.storeLink as string,
       }));
   }, [enriched, relatedParts]);
-  console.log("relatedProducts --- ==== ", relatedProducts);
 
   const parentAssemblies = useMemo<RelatedProduct[]>(() => {
     if (!enriched) return [];
