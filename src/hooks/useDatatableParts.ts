@@ -1,155 +1,44 @@
 import { useEffect, useState } from "react";
+import { useAppSelector } from "../store/store";
+import { getProductId } from "../store/slices/configurator/selectors/selectors";
+import { DatatablePart, fetchProductParts } from "../services/productContent";
 
-export interface DatatablePart {
-  id: string;
-  itemNumber: string;
-  partNumber: string;
-  productVariantId: string;
-  groupName: string;
-  displayName: string;
-  category: string;
-  side: string;
-  description: string;
-  technicalNotes: string;
-  storeLink: string | null;
-  storeLinkText: string | null;
-  specifications: Record<string, string>;
-  maintenance: {
-    interval: string;
-    task: string;
-    commonIssues: string;
-  } | null;
-  relatedProducts: string[];
-  parentAssemblies: string[];
-  components: string[];
-}
+export type { DatatablePart } from "../services/productContent";
 
-interface DatatableRow {
-  [key: string]: string;
-}
+const EMPTY_PARTS: DatatablePart[] = [];
 
-interface DatatableResponse {
-  id: number;
-  name: string;
-  schema: { name: string; type: string }[];
-  rows: DatatableRow[];
-}
-
-const DATATABLE_URL = "https://renderadmin.vivid3d.tech/datatables/524";
-
-const SPEC_FIELDS: { key: string; label: string }[] = [
-  { key: "spec_material", label: "Material" },
-  { key: "spec_weight", label: "Weight" },
-  { key: "spec_torque", label: "Torque" },
-  { key: "spec_bearing_type", label: "Bearing Type" },
-  { key: "spec_brake_type", label: "Brake Type" },
-  { key: "spec_spring_type", label: "Spring Type" },
-  { key: "spec_load_capacity", label: "Load Capacity" },
-  { key: "spec_lining_life", label: "Lining Life" },
-  { key: "spec_durability", label: "Durability" },
-];
-
-function parseSpecifications(row: DatatableRow): Record<string, string> {
-  const specs: Record<string, string> = {};
-  for (const { key, label } of SPEC_FIELDS) {
-    if (row[key]) specs[label] = row[key];
-  }
-  return specs;
-}
-
-function parseMaintenance(row: DatatableRow) {
-  const interval = row.maint_interval || "";
-  const task = row.maint_task || "";
-  const commonIssues = row.maint_common_issues || "";
-  if (!interval && !task && !commonIssues) return null;
-  return { interval, task, commonIssues };
-}
-
-function parseDatatableRows(data: DatatableResponse): DatatablePart[] {
-  if (!data?.rows) return [];
-
-  return data.rows
-    .filter((row) => row.id)
-    .map((row) => ({
-      id: row.id || "",
-      itemNumber: row.itemNumber || "",
-      partNumber: row.partNumber || "",
-      productVariantId: String(row.productVariantId || "").trim(),
-      groupName: row.groupName || "",
-      displayName: row.displayName || "",
-      category: row.category || "",
-      side: row.side || "",
-      description: row.description || "",
-      technicalNotes: row.technical_notes || "",
-      storeLink: row.store_link || null,
-      storeLinkText: row.store_link_text || null,
-      specifications: parseSpecifications(row),
-      maintenance: parseMaintenance(row),
-      relatedProducts: (row.relatedProducts || "")
-        .split(",")
-        .map((partNumber) => partNumber.trim())
-        .filter(Boolean),
-      parentAssemblies: (row.parentAssemblies || "")
-        .split(",")
-        .map((partNumber) => partNumber.trim())
-        .filter(Boolean),
-      components: (row.components || "")
-        .split(",")
-        .map((partNumber) => partNumber.trim())
-        .filter(Boolean),
-    }));
-}
-
-let cachedParts: DatatablePart[] | null = null;
-let fetchPromise: Promise<DatatablePart[]> | null = null;
-
-function fetchParts(): Promise<DatatablePart[]> {
-  if (cachedParts) return Promise.resolve(cachedParts);
-  if (fetchPromise) return fetchPromise;
-
-  fetchPromise = fetch(DATATABLE_URL)
-    .then((res) => {
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      return res.json();
-    })
-    .then((data: DatatableResponse) => {
-      cachedParts = parseDatatableRows(data);
-      return cachedParts;
-    })
-    .catch((err) => {
-      fetchPromise = null;
-      throw err;
-    });
-
-  return fetchPromise;
-}
-
+/** Loads only the current product's content, hiding stale results on route changes and unmount. */
 export function useDatatableParts() {
-  const [parts, setParts] = useState<DatatablePart[]>(cachedParts ?? []);
-  const [isLoading, setIsLoading] = useState(!cachedParts);
-  const [error, setError] = useState<string | null>(null);
+  const productId = useAppSelector(getProductId);
+  const [result, setResult] = useState<{
+    productId: number;
+    parts: DatatablePart[];
+    isLoading: boolean;
+    error: string | null;
+  }>({ productId, parts: EMPTY_PARTS, isLoading: true, error: null });
 
   useEffect(() => {
     let cancelled = false;
-
-    fetchParts()
-      .then((data) => {
-        if (!cancelled) {
-          setParts(data);
-          setIsLoading(false);
-        }
+    setResult({ productId, parts: EMPTY_PARTS, isLoading: true, error: null });
+    fetchProductParts(productId)
+      .then((parts) => {
+        if (!cancelled) setResult({ productId, parts, isLoading: false, error: null });
       })
-      .catch((err) => {
-        if (!cancelled) {
-          setError(err instanceof Error ? err.message : "Failed to load parts");
-          setIsLoading(false);
-        }
+      .catch((error) => {
+        if (!cancelled)
+          setResult({
+            productId,
+            parts: EMPTY_PARTS,
+            isLoading: false,
+            error: error instanceof Error ? error.message : "Failed to load parts",
+          });
       });
-
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [productId]);
 
-  return { parts, isLoading, error };
+  return result.productId === productId
+    ? { parts: result.parts, isLoading: result.isLoading, error: result.error }
+    : { parts: EMPTY_PARTS, isLoading: true, error: null };
 }

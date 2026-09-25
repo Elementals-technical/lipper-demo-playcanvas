@@ -153,7 +153,7 @@ src/
   hooks/
     useConfiguratorAPI.ts    Доступ до window.ConfiguratorAPI.
     usePartSelection.ts      Підписка на outline select/deselect з PlayCanvas.
-    useDatatableParts.ts     Fetch і парсинг dataTable 524.
+    useDatatableParts.ts     Контент поточного продукту через PRODUCTS.tableContentId.
   services/
     productAttributes/       Vivid product API client.
   modules/
@@ -220,37 +220,49 @@ Spring Assembly
 Brake Assembly
 ```
 
-### 3. dataTable 524
+### 3. PRODUCTS і таблиці контенту продуктів
 
-dataTable використовується для текстового enrichment popup/details. Він не є
-джерелом 3D entities і не вмикає самі PlayCanvas-анотації.
-
-Endpoint:
+Спочатку клієнт завантажує PRODUCTS:
 
 ```text
-https://renderadmin.vivid3d.tech/datatables/524
+https://renderadmin.vivid3d.tech/datatables/576
 ```
+
+Рядок вибирається за `variantId`, що відповідає ID продукту з маршруту.
+`label` використовується в заголовку, а `tableContentId` визначає наступний запит:
+`https://renderadmin.vivid3d.tech/datatables/{tableContentId}`.
+Завантаження PRODUCTS спільне для назви й контенту; таблиці контенту кешуються
+окремо за ID. Помилкові запити можна повторити після повторного монтування.
+Після редагування таблиць в адмінці потрібно перезавантажити сторінку.
+
+Відсутній продукт, порожній/некоректний `tableContentId` або заглушка `1111`
+означають відсутність контенту. Інша таблиця та дані PlayCanvas не підставляються.
+Для `/` залишається ID `2669`; контент з'явиться лише за наявності його запису
+в PRODUCTS. У поточних таблицях продукт `3263` посилається на таблицю `582`.
 
 Код:
 
 ```text
+src/services/productContent.ts
 src/hooks/useDatatableParts.ts
+src/hooks/useDataTablePart.ts
 src/components/PartPopup/PartPopup.tsx
 ```
 
-Поточні важливі поля таблиці:
+Поля PRODUCT-CONTENT:
 
 ```text
 id
-itemNumber
 side
-productVariantId
 partNumber
 displayName
 groupName
 category
 description
 technical_notes
+relatedProducts
+parentAssemblies
+components
 store_link
 store_link_text
 spec_material
@@ -267,13 +279,15 @@ maint_task
 maint_common_issues
 ```
 
-Матчинг popup:
-
-1. `useDataTablePart` шукає рядок за `selectedPart.partNumber` і `productVariantId`, що відповідає ID продукту з маршруту (для `/` — `2669`).
-2. Якщо такого рядка немає, бере перший рядок із відповідним `partNumber`, незалежно від `productVariantId`.
-
-Таблиця може містити кілька рядків з однаковим `partNumber`. Поля деталі, зокрема
-`parentAssemblies`, беруться з обраного рядка.
+`itemNumber` і `productVariantId` більше не використовуються в таблиці контенту.
+`partNumber` має бути унікальним у межах таблиці. Popup та підказка наведення
+беруть із PlayCanvas лише `partNumber`; усі тексти, посилання, характеристики
+та обслуговування надходять виключно з відповідного рядка таблиці.
+Якщо рядка немає, popup і текст підказки не відображаються.
+`relatedProducts`, `parentAssemblies` і `components` містять артикули через кому;
+відповідні рядки шукаються лише в тій самій таблиці. Відсутні рядки пропускаються.
+При зміні продукту старий контент приховується, запізнілі відповіді ігноруються.
+Таблиця не є джерелом 3D entities і не вмикає самі PlayCanvas-анотації.
 
 ## Parts List
 
@@ -343,24 +357,17 @@ Popup:
 src/components/PartPopup/PartPopup.tsx
 ```
 
-Popup бере `selectedPart` з PlayCanvas і намагається знайти відповідний row у
-dataTable. Дані з PlayCanvas мають пріоритет, dataTable використовується як
-fallback/enrichment.
+Popup і підказка наведення використовують `partNumber` із PlayCanvas лише як
+ключ пошуку. Контент береться виключно з таблиці, визначеної через PRODUCTS.
+Порожні поля не доповнюються даними PlayCanvas.
 
 Важливо:
 
-- якщо треба змінити 3D-анотацію, entities або anchor, це робиться у PlayCanvas
-  definitions/bundle, не в dataTable;
-- якщо треба змінити текст, store link, specs або опис у popup, це робиться у
-  dataTable 524;
-- якщо треба додати новий тип поля з dataTable, треба оновити parser у
-  `useDatatableParts.ts` і rendering у `PartPopup.tsx`.
-
-Поточний implementation note: `useDatatableParts.ts` парсить maintenance як
-`interval`, `task`, `commonIssues`, а `PartPopup.tsx` зараз читає
-`maintenance_interval`, `maintenance_task`, `common_issues`. Якщо треба
-показувати maintenance тільки з dataTable, ці ключі треба привести до одного
-формату.
+- entities, anchor і видимість 3D-анотацій налаштовуються в PlayCanvas;
+- тексти, store link, specs та maintenance змінюються в PRODUCT-CONTENT;
+- нові поля потрібно додавати до parser у `src/services/productContent.ts`
+  та rendering у `PartPopup.tsx`;
+- maintenance має єдиний UI-формат `interval`, `task`, `commonIssues`.
 
 ## AR flow
 
@@ -425,13 +432,12 @@ CLIENT_INTEGRATION_GUIDE.md
 
 ### Оновити тексти popup
 
-Оновити dataTable `524`.
+Оновити таблицю з `tableContentId` відповідного рядка PRODUCTS (`576`).
 
 Мінімально важливі поля:
 
 ```text
 groupName
-itemNumber
 partNumber
 displayName
 description
@@ -440,7 +446,7 @@ store_link
 store_link_text
 ```
 
-`groupName` має збігатися з PlayCanvas outline group.
+`partNumber` має збігатися з артикулом PlayCanvas. `groupName` — резервна назва з таблиці.
 
 ### Оновити 3D-анотації
 
@@ -513,6 +519,13 @@ ar-models/
 
 Цю папку не потрібно комітити.
 
+Локальні регресійні перевірки завантаження контенту, зміни продукту та popup
+(без звернень до зовнішньої мережі):
+
+```bash
+node --test scripts/test-product-content.cjs
+```
+
 ## Deployment notes
 
 Production entrypoint віддає `treble-app.js` і `treble-app.css`.
@@ -530,7 +543,7 @@ npm run build
 - PlayCanvas canvas доходить до `ready`;
 - `Parts List` показує тільки VV-enabled attributes;
 - `Annotations` toggle вмикає/вимикає 3D labels;
-- click по annotation відкриває enriched popup;
+- click по annotation відкриває popup із таблиці поточного продукту;
 - `View in AR` відкриває popup і генерує QR або iOS AR link.
 
 ## Debugging checklist
@@ -552,9 +565,9 @@ npm run build
 
 ### Popup не має текстів
 
-- Перевірити dataTable `524`.
-- Перевірити `partNumber` і відповідність `productVariantId` поточному продукту.
-- Якщо відповідного `productVariantId` немає, перевірити перший рядок із цим `partNumber`.
+- Перевірити PRODUCTS (`576`): `variantId` і реальний `tableContentId` замість `1111`.
+- Перевірити наявність `partNumber` у таблиці контенту цього продукту.
+- Порожні поля та відсутні рядки більше не доповнюються даними PlayCanvas.
 - Перевірити, чи `useDatatableParts()` успішно завантажив rows.
 
 ### AR не працює
