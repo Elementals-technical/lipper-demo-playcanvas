@@ -41,7 +41,6 @@ const NotificationCard = ({ item }: { item: NotificationItem }) => {
       {expanded && (
         <div className={s.cardBody}>
           <div className={s.meta}>
-            {item.itemNumber && <span className={s.metaItem}>#{item.itemNumber}</span>}
             {item.partNumber && <span className={s.metaItem}>Part: {item.partNumber}</span>}
             {item.side !== 'Shared' && <span className={s.metaItem}>{item.side}</span>}
           </div>

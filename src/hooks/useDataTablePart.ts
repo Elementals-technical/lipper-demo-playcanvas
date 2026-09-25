@@ -1,39 +1,21 @@
 import { useMemo } from "react";
-import { useAppSelector } from "../store/store";
-import { getProductId } from "../store/slices/configurator/selectors/selectors";
 import { DatatablePart, useDatatableParts } from "./useDatatableParts";
 
-/** Finds a part by number, preferring the current product's row; returns null when absent. */
-export const findDatatablePart = (
-  parts: DatatablePart[],
-  partNumber: string | null | undefined,
-  productId: string | number
-) => {
-  if (!partNumber) return null;
-
-  return (
-    parts.find(
-      (candidate) => candidate.partNumber === partNumber && candidate.productVariantId === String(productId)
-    ) ??
-    parts.find((candidate) => candidate.partNumber === partNumber) ??
-    null
-  );
+/** Finds a part in the current product's table; returns null when absent. */
+export const findDatatablePart = (parts: DatatablePart[], partNumber: string | number | null | undefined) => {
+  if (partNumber === null || partNumber === undefined) return null;
+  return parts.find((candidate) => candidate.partNumber === String(partNumber).trim()) ?? null;
 };
 
 /**
- * Loads the selected PlayCanvas part, preferring a row for the current route product.
- * Falls back to the first matching part number when no product-specific row exists.
+ * Resolves a selected part and its relationships exclusively inside the current product's table.
  *
  * @param partNumber Part number reported by PlayCanvas.
  */
 export const useDataTablePart = (partNumber: string | null | undefined) => {
-  const productId = useAppSelector(getProductId);
   const { parts, isLoading, error } = useDatatableParts();
 
-  const part = useMemo(
-    () => findDatatablePart(parts, partNumber, productId),
-    [partNumber, parts, productId]
-  );
+  const part = useMemo(() => findDatatablePart(parts, partNumber), [partNumber, parts]);
 
   const relatedParts = useMemo(
     () =>

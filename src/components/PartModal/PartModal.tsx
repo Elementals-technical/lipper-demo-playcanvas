@@ -1,26 +1,10 @@
-import { useMemo } from 'react';
 import { usePartSelection } from '../../hooks/usePartSelection';
-import { useDatatableParts } from '../../hooks/useDatatableParts';
+import { useDataTablePart } from '../../hooks/useDataTablePart';
 import s from './PartModal.module.scss';
 
 export const PartModal: React.FC = () => {
   const { selectedPart, deselect } = usePartSelection();
-  const { parts } = useDatatableParts();
-
-  const part = useMemo(() => {
-    if (!selectedPart || !parts.length) return null;
-    // Exact match by groupName
-    const exact = parts.find((p) => p.groupName === selectedPart.groupName);
-    if (exact) return exact;
-    // Fallback: match by partNumber + side (from groupName)
-    if (selectedPart.partNumber) {
-      return parts.find(
-        (p) => p.partNumber === selectedPart.partNumber &&
-          selectedPart.groupName.includes(p.side),
-      ) ?? null;
-    }
-    return null;
-  }, [selectedPart, parts]);
+  const { part } = useDataTablePart(selectedPart?.partNumber);
 
   if (!part) return null;
 
@@ -42,9 +26,6 @@ export const PartModal: React.FC = () => {
             )}
           </div>
           <h2 className={s.title}>{part.displayName}</h2>
-          {part.itemNumber && (
-            <span className={s.itemNum}>#{part.itemNumber}</span>
-          )}
         </div>
 
         {/* Description */}

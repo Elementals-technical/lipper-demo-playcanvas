@@ -1,7 +1,7 @@
-import { useMemo, useEffect } from "react";
+import { useMemo, useEffect, useRef } from "react";
 import { usePartSelection } from "../../hooks/usePartSelection";
 import { findDatatablePart, useDataTablePart } from "../../hooks/useDataTablePart";
-import { useDatatableParts } from "../../hooks/useDatatableParts";
+import { DatatablePart, useDatatableParts } from "../../hooks/useDatatableParts";
 import { useAppSelector } from "../../store/store";
 import { getProductId } from "../../store/slices/configurator/selectors/selectors";
 import s from "./PartPopup.module.scss";
@@ -11,6 +11,37 @@ interface RelatedProduct {
   name: string;
   link: string;
 }
+
+const CONTACT_CUSTOMER_SERVICE = "Contact Customer Service for availability";
+
+/** Returns a usable table store link, excluding unavailable/service-only values. */
+const getStoreLink = (part: DatatablePart): string => {
+  const link = part.storeLink?.trim() || "";
+  return ["NLA", "N/A"].includes(link.toUpperCase()) || link.toLowerCase() === CONTACT_CUSTOMER_SERVICE.toLowerCase()
+    ? ""
+    : link;
+};
+
+/** Escapes literal table content for the PlayCanvas HTML tooltip renderer. */
+const escapeHtml = (value: string): string =>
+  value.replace(
+    /[&<>"']/g,
+    (character) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      })[character]!
+  );
+
+/** Builds a relationship label and link exclusively from a table row. */
+const toRelatedProduct = (part: DatatablePart): RelatedProduct => ({
+  id: part.partNumber,
+  name: part.displayName || part.groupName,
+  link: getStoreLink(part),
+});
 
 const ArrowTopRightIcon = () => (
   <svg
@@ -62,13 +93,23 @@ const formatPartTitle = (partNumber?: string | null, displayName?: string | null
 /**
  * Override the built-in PlayCanvas hover tooltip with our design.
  * Finds OutlineService via PlayCanvas script instances and applies
- * custom styles + renderTooltip function, preferring datatable titles for the current product.
+ * custom styles + renderTooltip using only the current product table.
+ * Restores the previous renderer and popup styles when the scene is unmounted.
  */
 function useTooltipStyling() {
   const { parts } = useDatatableParts();
   const productId = useAppSelector(getProductId);
+  const partsRef = useRef(parts);
+  const popupRef = useRef<HTMLElement | null>(null);
+  partsRef.current = parts;
 
   useEffect(() => {
+    // A visible tooltip must not keep content from the previous table.
+    if (popupRef.current) popupRef.current.innerHTML = "";
+  }, [parts]);
+
+  useEffect(() => {
+    let restore: (() => void) | undefined;
     const apply = () => {
       const api = (window as any).ConfiguratorAPI;
       if (!api) return false;
@@ -86,7 +127,13 @@ function useTooltipStyling() {
         }
       });
 
-      if (!os) return false;
+      if (!os?._options) return false;
+      const previousRenderer = os._options.renderTooltip;
+      const previousInteractive = os._options.tooltipInteractive;
+      const popup = os._popup as HTMLElement | undefined;
+      const previousStyle = popup?.style.cssText;
+      popupRef.current = popup ?? null;
+      if (popup) popup.innerHTML = "";
 
       // 1. Override tooltip container styles
       if (os._popup) {
@@ -106,22 +153,22 @@ function useTooltipStyling() {
       // 2. Custom renderTooltip via _options
       if (os._options) {
         os._options.tooltipInteractive = true;
-        os._options.renderTooltip = (data: any) => {
-          const datatablePart = findDatatablePart(parts, data.partNumber, productId);
-          const sku = datatablePart?.partNumber || data.sku || data.partNumber;
-          const displayTitle = datatablePart?.displayName || data.displayName;
+        const renderTooltip = (data: { partNumber?: string | number | null }) => {
+          const part = findDatatablePart(partsRef.current, data.partNumber);
+          if (!part) return "";
           let html = `<strong style="font-size:15px;font-weight:600;color:#343A40;display:block;margin-bottom:6px;line-height:1.3;">`;
-          html += formatPartTitle(sku, displayTitle, data.groupName);
+          html += escapeHtml(formatPartTitle(part.partNumber, part.displayName, part.groupName));
           html += `</strong>`;
 
-          if (data.description) {
-            html += `<span style="color:#6C757D;font-size:13px;font-weight:400;display:block;margin-bottom:10px;">${data.description}</span>`;
+          if (part.description) {
+            html += `<span style="color:#6C757D;font-size:13px;font-weight:400;display:block;margin-bottom:10px;">${escapeHtml(part.description)}</span>`;
           }
 
-          if (data.storeLink) {
-            html += `<a href="${data.storeLink}" target="_blank" rel="noopener noreferrer"
+          const link = getStoreLink(part);
+          if (link) {
+            html += `<a href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer"
               style="color:#37CC8F;font-size:13px;font-weight:500;text-decoration:none;display:inline-flex;align-items:center;gap:4px;">
-              Store Link ↗
+              ${escapeHtml(part.storeLinkText || "Store Link")} ↗
             </a>`;
           } else {
             html += `<span style="color:#37CC8F;font-size:13px;font-weight:500;">Click for details</span>`;
@@ -129,17 +176,33 @@ function useTooltipStyling() {
 
           return html;
         };
+        os._options.renderTooltip = renderTooltip;
+        restore = () => {
+          if (os._options.renderTooltip === renderTooltip) {
+            os._options.renderTooltip = previousRenderer;
+            os._options.tooltipInteractive = previousInteractive;
+          }
+          if (popup) {
+            popup.innerHTML = "";
+            popup.style.cssText = previousStyle ?? "";
+          }
+          popupRef.current = null;
+        };
       }
 
       return true;
     };
 
-    if (apply()) return;
-    const interval = setInterval(() => {
-      if (apply()) clearInterval(interval);
-    }, 500);
-    return () => clearInterval(interval);
-  }, [parts, productId]);
+    const interval = apply()
+      ? undefined
+      : setInterval(() => {
+          if (apply()) clearInterval(interval);
+        }, 500);
+    return () => {
+      clearInterval(interval);
+      restore?.();
+    };
+  }, [productId]);
 }
 
 export const PartPopup = () => {
@@ -153,110 +216,25 @@ export const PartPopup = () => {
 
   useTooltipStyling();
 
-  // Use enriched data from selectedPart (ConfiguratorAPI) merged with datatable
-  const enriched = selectedPart;
+  const relatedProducts = useMemo(() => relatedParts.map(toRelatedProduct).filter((part) => part.link), [relatedParts]);
+  const parentAssemblies = useMemo(() => parentAssemblyParts.map(toRelatedProduct), [parentAssemblyParts]);
+  const components = useMemo(() => componentParts.map(toRelatedProduct), [componentParts]);
 
-  const relatedProducts = useMemo<RelatedProduct[]>(() => {
-    if (!enriched) return [];
+  if (!datatablePart) return null;
 
-    const datatableRelatedProducts = relatedParts
-      .filter((related) => related.storeLink)
-      .map((related) => ({
-        id: related.partNumber,
-        name: related.displayName || related.groupName,
-        link: related.storeLink as string,
-      }));
-
-    if (datatableRelatedProducts.length) return datatableRelatedProducts;
-
-    return (enriched.relationProducts ?? [])
-      .filter((related) => related.storeLink)
-      .map((related) => ({
-        id: related.partNumber,
-        name: related.groupName,
-        link: related.storeLink as string,
-      }));
-  }, [enriched, relatedParts]);
-
-  const parentAssemblies = useMemo<RelatedProduct[]>(() => {
-    if (!enriched) return [];
-
-    const playcanvasParents = enriched.parentAssemblies ?? [];
-    const parentNumbers = datatablePart?.parentAssemblies.length
-      ? datatablePart.parentAssemblies
-      : playcanvasParents.map((parent) => parent.partNumber);
-
-    // Resolve each reference independently so missing table rows can use PlayCanvas data.
-    return parentNumbers
-      .map((partNumber) => {
-        const datatableParent = parentAssemblyParts.find((parent) => parent.partNumber === partNumber);
-        const parent = datatableParent ?? playcanvasParents.find((parent) => parent.partNumber === partNumber);
-        if (!parent) return null;
-
-        const link = parent.storeLink?.trim() || "";
-        return {
-          id: parent.partNumber,
-          name: datatableParent?.displayName || parent.groupName,
-          link: ["NLA", "N/A"].includes(link.toUpperCase()) ? "" : link,
-        };
-      })
-      .filter((parent) => parent !== null);
-  }, [enriched, datatablePart, parentAssemblyParts]);
-
-  const components = useMemo<RelatedProduct[]>(() => {
-    if (!enriched) return [];
-
-    const playcanvasComponents = enriched.components ?? [];
-    const componentNumbers = datatablePart?.components.length
-      ? datatablePart.components
-      : playcanvasComponents.map((component) => component.partNumber);
-
-    // Resolve each reference independently so missing table rows can use PlayCanvas data.
-    return componentNumbers
-      .map((partNumber) => {
-        const datatableComponent = componentParts.find((component) => component.partNumber === partNumber);
-        const component =
-          datatableComponent ?? playcanvasComponents.find((component) => component.partNumber === partNumber);
-        if (!component) return null;
-
-        const link = component.storeLink?.trim() || "";
-        return {
-          id: component.partNumber,
-          name: datatableComponent?.displayName || component.groupName,
-          link: ["NLA", "N/A"].includes(link.toUpperCase()) ? "" : link,
-        };
-      })
-      .filter((component) => component !== null);
-  }, [enriched, datatablePart, componentParts]);
-
-  if (!enriched) return null;
-
-  const displayTitle = datatablePart?.displayName || enriched.displayName;
-  const description = datatablePart?.description || enriched.description;
-  const technicalNotes = datatablePart?.technicalNotes || enriched.technicalNotes;
-  const specs =
-    datatablePart && Object.keys(datatablePart.specifications).length
-      ? datatablePart.specifications
-      : enriched.specifications;
-  const maintenance =
-    datatablePart?.maintenance || enriched.maintenance
-      ? {
-          interval: datatablePart?.maintenance?.interval || enriched.maintenance?.maintenance_interval,
-          task: datatablePart?.maintenance?.task || enriched.maintenance?.maintenance_task,
-          commonIssues: datatablePart?.maintenance?.commonIssues || enriched.maintenance?.common_issues,
-        }
-      : null;
-  const storeLink = (datatablePart ? datatablePart.storeLink : enriched.storeLink)?.trim() || "";
-  const contactCustomerServiceText = "Contact Customer Service for availability";
-  const requiresCustomerService = storeLink.toLowerCase() === contactCustomerServiceText.toLowerCase();
-  const hasStoreLink =
-    Boolean(storeLink) && !["NLA", "N/A"].includes(storeLink.toUpperCase()) && !requiresCustomerService;
-  const storeLinkText = requiresCustomerService
-    ? contactCustomerServiceText
-    : datatablePart?.storeLinkText || enriched.storeLinkText;
-  const category = datatablePart?.category || enriched.category;
-  const sku = datatablePart?.partNumber || enriched.sku || enriched.partNumber;
-  const hasSpecs = specs && Object.keys(specs).length > 0;
+  const displayTitle = datatablePart.displayName || datatablePart.groupName;
+  const description = datatablePart.description;
+  const technicalNotes = datatablePart.technicalNotes;
+  const specs = datatablePart.specifications;
+  const maintenance = datatablePart.maintenance;
+  const storeLink = getStoreLink(datatablePart);
+  const requiresCustomerService =
+    datatablePart.storeLink?.trim().toLowerCase() === CONTACT_CUSTOMER_SERVICE.toLowerCase();
+  const hasStoreLink = Boolean(storeLink);
+  const storeLinkText = requiresCustomerService ? CONTACT_CUSTOMER_SERVICE : datatablePart.storeLinkText;
+  const category = datatablePart.category;
+  const sku = datatablePart.partNumber;
+  const hasSpecs = Object.keys(specs).length > 0;
 
   return (
     <div className={s.overlay} onClick={deselect}>

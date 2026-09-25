@@ -1,41 +1,8 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 
+/** Only the scene part identifier is retained; content comes from the product table. */
 export interface PartData {
-  groupName: string;
-  itemNumber: number;
   partNumber: string | null;
-  sku: string | null;
-  displayName: string;
-  category: string | null;
-  description: string | null;
-  technicalNotes: string | null;
-  isMajorComponent: boolean;
-  storeLink: string | null;
-  storeLinkText: string | null;
-  entities: string[];
-  specifications: Record<string, string> | null;
-  maintenance: {
-    maintenance_interval: string;
-    maintenance_task: string;
-    common_issues: string;
-  } | null;
-  relationProducts?: Array<{
-    groupName: string;
-    partNumber: string;
-    storeLink: string | null;
-  }>;
-  /** Parent assemblies supplied by the outline onSelect event. */
-  parentAssemblies?: Array<{
-    groupName: string;
-    partNumber: string;
-    storeLink: string | null;
-  }>;
-  /** Components supplied by the outline onSelect event. */
-  components?: Array<{
-    groupName: string;
-    partNumber: string;
-    storeLink: string | null;
-  }>;
 }
 
 const DRAG_THRESHOLD_PX = 5;
@@ -87,9 +54,8 @@ export function usePartSelection() {
       if (!api?.outline) return false;
 
       unsubSelect = api.outline.onSelect((data: PartData) => {
-        console.log("Part selected: ---- ====", data);
         if (dragRef.current.moved) return;
-        setSelectedPart(data);
+        setSelectedPart({ partNumber: data.partNumber == null ? null : String(data.partNumber).trim() });
       });
       unsubDeselect = api.outline.onDeselect(() => {
         setSelectedPart(null);
