@@ -216,7 +216,7 @@ export const PartPopup = () => {
 
   useTooltipStyling();
 
-  const relatedProducts = useMemo(() => relatedParts.map(toRelatedProduct).filter((part) => part.link), [relatedParts]);
+  const relatedProducts = useMemo(() => relatedParts.map(toRelatedProduct), [relatedParts]);
   const parentAssemblies = useMemo(() => parentAssemblyParts.map(toRelatedProduct), [parentAssemblyParts]);
   const components = useMemo(() => componentParts.map(toRelatedProduct), [componentParts]);
 
@@ -348,9 +348,15 @@ export const PartPopup = () => {
             <ul className={s.relatedList}>
               {relatedProducts.map((related) => (
                 <li key={related.id} className={s.relatedItem}>
-                  <a href={related.link} target="_blank" rel="noopener noreferrer">
-                    {related.id} {related.name}
-                  </a>
+                  {related.link ? (
+                    <a href={related.link} target="_blank" rel="noopener noreferrer">
+                      {related.id} {related.name}
+                    </a>
+                  ) : (
+                    <span>
+                      {related.id} {related.name}
+                    </span>
+                  )}
                 </li>
               ))}
             </ul>
