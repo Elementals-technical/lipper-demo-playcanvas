@@ -11,6 +11,10 @@ const SUB_ASSEMBLIES = [
   "Brake Assembly",
   "Stationary Part",
   "Moving Part",
+  "Vehicle Structure",
+  "Slide Out Box",
+  "Slide Assembly",
+  "Sill Pan Assembly",
 ];
 
 const CogIcon = () => (
@@ -116,10 +120,7 @@ const AssemblyExplodeToggle = ({ attributeName }: { attributeName: string }) => 
   return (
     <div className={s.actionToggle}>
       <span className={s.actionLabel}>Explode</span>
-      <button
-        className={clsx(s.toggle, isOn && s.toggleOn)}
-        onClick={() => setAttribute(!isOn)}
-      >
+      <button className={clsx(s.toggle, isOn && s.toggleOn)} onClick={() => setAttribute(!isOn)}>
         <span className={s.toggleThumb} />
       </button>
     </div>
@@ -191,7 +192,9 @@ export const PartsListPanel = () => {
       <div className={s.body}>
         {/* Parent assembly with explode */}
         <div className={s.parentRow}>
-          <span className={s.parentName}>{"Hub Assembly" }</span>
+          <span className={s.parentName}>
+            {vividAttributeNames.has("Slide Pan Assembly Explode") ? "Slide Outs" : "Hub Assembly"}
+          </span>
           <ExplodeToggle />
         </div>
 
@@ -206,6 +209,13 @@ export const PartsListPanel = () => {
           <div className={s.parentRow}>
             <span className={s.parentName}>Brake Assembly</span>
             <AssemblyExplodeToggle attributeName="Brake Assembly Explode" />
+          </div>
+        )}
+
+        {vividAttributeNames.has("Slide Pan Assembly Explode") && (
+          <div className={s.parentRow}>
+            <span className={s.parentName}>Slide Pan Assembly</span>
+            <AssemblyExplodeToggle attributeName="Slide Pan Assembly Explode" />
           </div>
         )}
 

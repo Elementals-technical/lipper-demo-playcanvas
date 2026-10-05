@@ -13,9 +13,14 @@ export const ATTR_TO_PC_KEY: Record<string, string> = {
   "Spindle Assembly": "spindleAssemblyVisible",
   "Stationary Part": "stationaryPartVisible",
   "Moving Part": "movingPartVisible",
+  "Vehicle Structure": "vehicleStructureVisible",
+  "Slide Out Box": "slideOutBoxVisible",
+  "Slide Assembly": "slideAssemblyVisible",
+  "Sill Pan Assembly": "sillPanAssemblyVisible",
   Explode: "explodeStatus",
   "Spring Assembly Explode": "springAssemblyExplode",
   "Brake Assembly Explode": "brakeAssemblyExplode",
+  "Slide Pan Assembly Explode": "slidePanAssemblyExplode",
   Annotations: "annotationsVisible",
 };
 
@@ -32,9 +37,14 @@ const BOOLEAN_ATTRS = new Set([
   "Spindle Assembly",
   "Stationary Part",
   "Moving Part",
+  "Vehicle Structure",
+  "Slide Out Box",
+  "Slide Assembly",
+  "Sill Pan Assembly",
   "Explode",
   "Spring Assembly Explode",
   "Brake Assembly Explode",
+  "Slide Pan Assembly Explode",
   "Annotations",
 ]);
 

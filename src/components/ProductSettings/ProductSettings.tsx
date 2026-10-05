@@ -22,6 +22,10 @@ const ASSEMBLY_NAMES = [
   "Brake Assembly",
   "Stationary Part",
   "Moving Part",
+  "Vehicle Structure",
+  "Slide Out Box",
+  "Slide Assembly",
+  "Sill Pan Assembly",
 ];
 
 const ACTION_NAMES = ["Explode", "Annotations"];
@@ -155,6 +159,13 @@ export const ProductSettings: React.FC = () => {
                     <AssemblyToggle key={name} name={name} />
                   ))}
                 </div>
+              </div>
+            )}
+
+            {mocks["Slide Pan Assembly Explode"] && (
+              <div className={s.section}>
+                <div className={s.sectionTitle}>Explode</div>
+                <AssemblyToggle name="Slide Pan Assembly Explode" />
               </div>
             )}
 

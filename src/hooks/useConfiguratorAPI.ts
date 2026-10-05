@@ -11,6 +11,11 @@ export interface ConfiguratorState {
   annotationsVisible: boolean;
   springAssemblyExplode?: boolean;
   brakeAssemblyExplode?: boolean;
+  vehicleStructureVisible?: boolean;
+  slideOutBoxVisible?: boolean;
+  slideAssemblyVisible?: boolean;
+  sillPanAssemblyVisible?: boolean;
+  slidePanAssemblyExplode?: boolean;
 }
 
 export interface ConfiguratorAPI {
