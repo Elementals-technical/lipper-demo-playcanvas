@@ -420,6 +420,11 @@ app.on('configurator:ready', () => {
 | Ключ | Тип | Default | Опис |
 |------|-----|---------|------|
 | `explodeStatus` | `boolean` | `false` | Розібрати/зібрати модель (анімація) |
+| `slidePanAssemblyExplode` | `boolean` | `false` | Slide Outs: розібрати/зібрати Slide Pan Assembly |
+| `vehicleStructureVisible` | `boolean` | `true` | Slide Outs: видимість Vehicle Structure |
+| `slideOutBoxVisible` | `boolean` | `true` | Slide Outs: видимість Slide Out Box |
+| `slideAssemblyVisible` | `boolean` | `true` | Slide Outs: видимість Slide Assembly |
+| `sillPanAssemblyVisible` | `boolean` | `true` | Slide Outs: видимість Sill Pan Assembly |
 | `hubAssemblyVisible` | `boolean` | `true` | Видимість Hub Assembly |
 | `spindleAssemblyVisible` | `boolean` | `true` | Видимість Spindle Assembly |
 | `springAssemblyVisible` | `boolean` | `true` | Видимість Spring Assembly |

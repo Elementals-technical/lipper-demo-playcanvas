@@ -36,6 +36,27 @@ const MOVING_PART: Record<string, LippertVariantMetadata> = {
   false: { assetId: "moving-off", pcOption: false, pcAsset: null },
 };
 
+// ── Slide Outs visibility (toggles) ──
+const VEHICLE_STRUCTURE: Record<string, LippertVariantMetadata> = {
+  true: { assetId: "vehicle-structure-on", pcOption: true, pcAsset: null },
+  false: { assetId: "vehicle-structure-off", pcOption: false, pcAsset: null },
+};
+
+const SLIDE_OUT_BOX: Record<string, LippertVariantMetadata> = {
+  true: { assetId: "slide-out-box-on", pcOption: true, pcAsset: null },
+  false: { assetId: "slide-out-box-off", pcOption: false, pcAsset: null },
+};
+
+const SLIDE_ASSEMBLY: Record<string, LippertVariantMetadata> = {
+  true: { assetId: "slide-assembly-on", pcOption: true, pcAsset: null },
+  false: { assetId: "slide-assembly-off", pcOption: false, pcAsset: null },
+};
+
+const SILL_PAN_ASSEMBLY: Record<string, LippertVariantMetadata> = {
+  true: { assetId: "sill-pan-assembly-on", pcOption: true, pcAsset: null },
+  false: { assetId: "sill-pan-assembly-off", pcOption: false, pcAsset: null },
+};
+
 // ── Explode (toggle) ──
 const EXPLODE: Record<string, LippertVariantMetadata> = {
   true: { assetId: "explode-on", pcOption: true, pcAsset: null },
@@ -62,9 +83,14 @@ export const LIPPERT_ATTRIBUTE_METADATA: Record<string, Record<string, LippertVa
   "Spindle Assembly": SPINDLE_ASSEMBLY,
   "Stationary Part": STATIONARY_PART,
   "Moving Part": MOVING_PART,
+  "Vehicle Structure": VEHICLE_STRUCTURE,
+  "Slide Out Box": SLIDE_OUT_BOX,
+  "Slide Assembly": SLIDE_ASSEMBLY,
+  "Sill Pan Assembly": SILL_PAN_ASSEMBLY,
   Explode: EXPLODE,
   "Spring Assembly Explode": ASSEMBLY_EXPLODE,
   "Brake Assembly Explode": ASSEMBLY_EXPLODE,
+  "Slide Pan Assembly Explode": ASSEMBLY_EXPLODE,
   Annotations: ANNOTATIONS,
 };
 
