@@ -193,7 +193,7 @@ export const PartsListPanel = () => {
         {/* Parent assembly with explode */}
         <div className={s.parentRow}>
           <span className={s.parentName}>
-            {vividAttributeNames.has("Slide Pan Assembly Explode") ? "Slide Outs" : "Hub Assembly"}
+            {vividAttributeNames.has("Slide Pan Assembly Explode") ? "Box Assembly" : "Hub Assembly"}
           </span>
           <ExplodeToggle />
         </div>
@@ -214,7 +214,7 @@ export const PartsListPanel = () => {
 
         {vividAttributeNames.has("Slide Pan Assembly Explode") && (
           <div className={s.parentRow}>
-            <span className={s.parentName}>Slide Pan Assembly</span>
+            <span className={s.parentName}>Slide &amp; Pan Assembly</span>
             <AssemblyExplodeToggle attributeName="Slide Pan Assembly Explode" />
           </div>
         )}
