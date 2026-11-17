@@ -3,6 +3,7 @@ import { getMockAttributes, useAttribute } from "../../configurator";
 import { useConfiguratorAPI } from "../../hooks/useConfiguratorAPI";
 import s from "./PartsListPanel.module.scss";
 import clsx from "clsx";
+import { ControlToggle } from "../Controls/ControlToggle/ControlToggle";
 
 const SUB_ASSEMBLIES = [
   "Hub Assembly",
@@ -231,6 +232,8 @@ export const PartsListPanel = () => {
             <PartRow key={name} name={name} />
           ))}
         </div>
+
+        <ControlToggle controlLabel="Big label" toggleLabel="Small label" value onChange={() => {}} />
       </div>
     </div>
   );

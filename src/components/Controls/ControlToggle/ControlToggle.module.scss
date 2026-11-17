@@ -1,0 +1,27 @@
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.label {
+  font-family: var(--font-primary);
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 24px;
+  color: var(--color-content-main);
+}
+
+.actionToggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.actionLabel {
+  font-family: var(--font-primary);
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--color-content-main);
+}
